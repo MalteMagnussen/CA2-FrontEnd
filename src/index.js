@@ -92,8 +92,8 @@ function changeActiveNavbarElement() {
 }
 /* End of JavaScript code for dynamic navigation behavior */
 
-const testurl = 'https://maltemagnussen.com/CA2/api/search/';
-const url = 'http://localhost:8080/CA2/api/search/';
+const url = 'https://maltemagnussen.com/CA2/api/search/';
+const testurl = 'http://localhost:8080/CA2/api/search/';
 
 function handleHttpErrors(res) {
     if (!res.ok) {
@@ -211,18 +211,51 @@ function addUpdateButtons() {
         div.appendChild(btnDelete);
         div.innerHTML += '<br><br>'; //spacing for next object
 
-        //Add event handlers to buttons
+        /*
+         ***Add event handlers to buttons***
+         */
+        //Edit
         document.getElementById("btnEdit").addEventListener('click', function (event) {
             event.preventDefault();
-            editPerson();
+
+            if (document.getElementById('updatePersonContainer') != null) {
+                document.getElementById('updatePersonContainer').outerHTML = ''; //reset
+            }
+            generatePerson(dataStore.getData(), 'edit');
+            let updateDiv = document.getElementById('updatePersonContainer');
+
+            //Confirm edit button
+            let btnConfirmEdit = document.createElement('button');
+            btnConfirmEdit.innerHTML = 'Confirm edit'
+            btnConfirmEdit.setAttribute('id', 'btnConfirmEdit');
+
+            //Deny delete button
+            let btnDenyEdit = document.createElement('button');
+            btnDenyEdit.innerHTML = 'Do not edit'
+            btnDenyEdit.setAttribute('id', 'btnDenyEdit');
+
+            //Append to div-element
+            updateDiv.innerHTML += '<br>';
+            updateDiv.appendChild(btnConfirmEdit);
+            updateDiv.appendChild(btnDenyEdit);
+            updateDiv.innerHTML += '<br><br>'; //spacing for next element
+            document.getElementById('btnConfirmEdit').addEventListener('click', function (event) {
+                event.preventDefault();
+                editPerson();
+            })
+
+            document.getElementById('btnDenyEdit').addEventListener('click', function (event) {
+                document.getElementById('viewPersonWithDataPTAG').innerHTML = ''; //reset but keep <div>-shell for functionality
+                document.getElementById('updatePersonContainer').outerHTML = '';
+            })
         });
+        //delete
         document.getElementById("btnDelete").addEventListener('click', function (event) {
             event.preventDefault();
             if (document.getElementById('updatePersonContainer') != null) {
-                return;
+                document.getElementById('updatePersonContainer').outerHTML = ''; //reset
             }
             generatePerson(dataStore.getData(), 'delete');
-            //document.getElementById('updatePersonContainer').style.display = 'block';
             let updateDiv = document.getElementById('updatePersonContainer');
 
             //Confirm delete button
@@ -232,13 +265,13 @@ function addUpdateButtons() {
 
             //Deny delete button
             let btnDenyDelete = document.createElement('button');
-            btnDenyDelete.innerHTML = 'Do not Delete'
+            btnDenyDelete.innerHTML = 'Do not delete'
             btnDenyDelete.setAttribute('id', 'btnDenyDelete');
 
             //Append to div-element
             updateDiv.appendChild(btnConfirmDelete);
             updateDiv.appendChild(btnDenyDelete);
-            updateDiv.innerHTML += '<br><br>'; //spacing for next object
+            updateDiv.innerHTML += '<br><br>'; //spacing for next element
 
             document.getElementById('btnConfirmDelete').addEventListener('click', function (event) {
                 event.preventDefault();
@@ -251,7 +284,7 @@ function addUpdateButtons() {
             })
 
             document.getElementById('btnDenyDelete').addEventListener('click', function (event) {
-                document.getElementById('viewPersonWithDataPTAG').innerHTML = ''; //reset
+                document.getElementById('viewPersonWithDataPTAG').innerHTML = ''; //reset but keep <div>-shell for functionality
                 document.getElementById('updatePersonContainer').outerHTML = '';
             })
         });
@@ -312,35 +345,32 @@ function generatePerson(fetchData, type) {
     if (type === 'delete') {
         outputField = 'p';
     } else if (type === 'edit') {
-        outputField = 'input';
+        outputField = 'textarea'; //could also be <input> but a) this is more suitable and b) this uses .innerhtml just like <p>
     } else {
         console.log("Incorrect type specified");
     }
-
+    // for (const key in fetchData) {
+    //     if (fetchData.hasOwnProperty(key)) {
+    //         const element = fetchData[key];
+    //         console.log(element);
+    //     }
+    // }
 
     for (let key in fetchData) {
-        if (key.includes('id')) return; //we do not allow users to see/edit IDs
+        if (key.includes('id')) continue; //we do not allow users to see/edit IDs
 
         if (typeof fetchData[key] === 'object') { //If we have a nested object
             Object.keys(fetchData[key]).forEach(key2 => {
                 if (key2.includes('id')) return; //we do not allow users to see/edit IDs
 
                 if (typeof fetchData[key][key2] === 'object') { //If we have a nested, nested object
-                    // console.log("NEST NEST");
 
                     Object.keys(fetchData[key][key2]).forEach(key3 => {
                         if (key3.includes('id')) return; //we do not allow users to see/edit IDs
-                        // console.log(fetchData[key][key2]);
-                        // console.log(fetchData[key][key2][key3]);
-                        // console.log(key3);
                         //Create fields
                         let field = document.createElement(`${outputField}`);
-                        field.setAttribute('id', `${key}` + `${key2}` + `${key3}` + 'Input')
-                        if (type === 'delete') {
-                            field.innerHTML = fetchData[key][key2][key3];
-                        } else {
-                            field.setAttribute('value', fetchData[key][key2][key3]);
-                        }
+                        field.setAttribute('id', `${key}` + `${key3}` + 'Input' + `${key2}`)
+                        field.innerHTML = fetchData[key][key2][key3];
                         //Create labels for input fields
                         let label = document.createElement('label');
                         label.innerHTML = key + ' | ' + '<strong>' + key3 + ': </strong> ';
@@ -348,18 +378,14 @@ function generatePerson(fetchData, type) {
                         //Add to DOM
                         newDiv.appendChild(document.createElement('br'));
                         newDiv.appendChild(label);
+                        newDiv.appendChild(document.createElement('br'));
                         newDiv.appendChild(field);
                     })
                 } else {
                     //Create fields
                     let field = document.createElement(`${outputField}`);
                     field.setAttribute('id', `${key}` + `${key2}` + 'Input')
-                    if (type === 'delete') {
-                        field.innerHTML = fetchData[key][key2];
-                    } else {
-
-                        field.setAttribute('value', fetchData[key][key2]);
-                    }
+                    field.innerHTML = fetchData[key][key2];
                     //Create labels for input fields
                     let label = document.createElement('label');
                     label.innerHTML = key + ' | ' + '<strong>' + key2 + ': </strong> ';
@@ -367,23 +393,15 @@ function generatePerson(fetchData, type) {
                     //Add to DOM
                     newDiv.appendChild(document.createElement('br'));
                     newDiv.appendChild(label);
+                    newDiv.appendChild(document.createElement('br'));
                     newDiv.appendChild(field);
-                    // console.log(key);
-                    // console.log("KEY: " + key2); // logs the key
-                    // console.log(fetchData[key][key2]);
-                    // console.log("---");
-                    // console.log(fetchData[key2]) // logs the key's value
                 }
             })
         } else {
             //Create fields
             let field = document.createElement(`${outputField}`);
             field.setAttribute('id', `${key}` + 'Input')
-            if (type === 'delete') {
-                field.innerHTML = fetchData[key];
-            } else {
-                field.setAttribute('value', fetchData[key]);
-            }
+            field.innerHTML = fetchData[key];
             //Create labels for input fields
             let label = document.createElement('label');
             label.innerHTML = 'User | ' + '<strong>' + key + ': </strong>'; //hackish, but there is no key to grab onto
@@ -391,16 +409,9 @@ function generatePerson(fetchData, type) {
             //Add to DOM
             newDiv.appendChild(document.createElement('br'));
             newDiv.appendChild(label);
+            newDiv.appendChild(document.createElement('br'));
             newDiv.appendChild(field);
         }
-
-
-
-
-        // console.log("KEY: "+ key + ' | VALUE: ');
-        // console.log(fetchData[key]);
-        // console.log(key[fetchData]);
-        //Need "U SURE U WANT TO DELETE?" ONCLICK --> FETCH DELETE
     }
 
     //console.log(fetchData['email']);
@@ -449,8 +460,91 @@ function deletePerson(id) {
 /*----------- BEGIN EDIT PERSON --------*/
 /*----------------------------------------*/
 function editPerson() {
+    if (document.getElementById('editOutput')) document.getElementById('editOutput').outerHTML = ''; //reset
+    if (document.getElementById('errorOutput')) document.getElementById('errorOutput').outerHTML = ''; //reset
 
-    alert("lets edit");
+    /* 
+    _____________________
+    Grab and setup data 
+    _____________________
+    */
+    let hobbies = [];
+    let hobbyNames = document.querySelectorAll('textarea[id^="hobbiesnameInput"]');
+    let hobbyDescriptions = document.querySelectorAll('textarea[id^="hobbiesdescriptionInput"]');
+    for (let index = 0; index < hobbyNames.length; index++) {
+        const nameData = hobbyNames[index];
+        const descriptionData = hobbyDescriptions[index]; //both arrays are the same size, always
+        hobbies.push({
+            name: nameData.value,
+            description: descriptionData.value
+        })
+    }
+
+    let phones = [];
+    let phoneNumbers = document.querySelectorAll('textarea[id^="phonesnumberInput"]');
+    let phoneDescriptions = document.querySelectorAll('textarea[id^="phonesdescriptionInput"]');
+    for (let index = 0; index < phoneNumbers.length; index++) {
+        const numberData = phoneNumbers[index];
+        const phoneDescriptionData = phoneDescriptions[index]; //both arrays are the same size, always
+        phones.push({
+            number: numberData.value,
+            description: phoneDescriptionData.value
+        })
+    }
+    let cityInfo = {
+        zipCode: document.getElementById('addresszipCodeInputcityInfo').value,
+        city: document.getElementById('addresscityInputcityInfo').value
+    }
+    let address = {
+        street: document.getElementById('addressstreetInput').value,
+        additionalInfo: document.getElementById('addressadditionalInfoInput').value,
+        cityInfo
+    };
+
+    let data = {
+        id: dataStore.getData().id,
+        firstName: document.getElementById('firstNameInput').value,
+        lastName: document.getElementById('lastNameInput').value,
+        email: document.getElementById('emailInput').value,
+        hobbies,
+        phones,
+        address
+    }
+
+    /* 
+    _____________________
+    End data setup
+    _____________________
+    */
+    fetch(url + "person", {
+            method: 'PUT',
+            body: JSON.stringify(data),
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(res => handleHttpErrors(res))
+        .then(data => {
+            let div = document.getElementById('viewPersonWithData');
+            let editOutput = document.createElement('p')
+            editOutput.setAttribute('id', "editOutput");
+            editOutput.innerHTML = 'Edited the following person succesfully! <br>' + writeToPTagPrPerson(data);
+            div.appendChild(editOutput);
+        })
+        .catch(err => {
+            if (err.status) {
+                err.fullError.then(e => {
+                    console.log(e);
+                })
+            } else {
+                console.log(err);
+            }
+            let errorOutput = document.createElement('p');
+            errorOutput.setAttribute('id', 'errorOutput');
+            errorOutput.innerHTML = '<br>ERROR:<br>' + JSON.stringify(err);
+            document.getElementById('staticPTag').insertAdjacentElement('afterend', errorOutput);
+        });
 }
 /*----------------------------------------*/
 /*----------- END EDIT PERSON ----------*/
