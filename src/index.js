@@ -252,6 +252,7 @@ function generatePerson(fetchData, type) {
     let newDiv = document.createElement('div');
     //Create div to display Person in
     newDiv.setAttribute('id', 'updatePersonContainer') //needed?
+    newDiv.style.display = 'none';
     div.appendChild(newDiv);
     //newDiv.childNodes.setAttribute('hidden', true); //hmm -- ACTUALLY JUST HIDE THE WHOLE DIV? THEN APPEAR ON CLICK
 
@@ -284,21 +285,20 @@ function generatePerson(fetchData, type) {
 
                     Object.keys(fetchData[key][key2]).forEach(key3 => {
                         if (key3.includes('id')) return; //we do not allow users to see/edit IDs
-                        console.log(fetchData[key][key2]);
-                        console.log(fetchData[key][key2][key3]);
-                        console.log(key3);
+                        // console.log(fetchData[key][key2]);
+                        // console.log(fetchData[key][key2][key3]);
+                        // console.log(key3);
                         //Create fields
                         let field = document.createElement('input');
                         field.setAttribute('id', `${key}` + `${key2}` + `${key3}` + 'Input')
                         field.setAttribute('value', fetchData[key][key2][key3]);
                         //Create labels for input fields
                         let label = document.createElement('label');
-                        label.innerHTML = `${key} ` + `${key3}`;
+                        label.innerHTML = key + ' | ' + '<strong>' + key3 + ': </strong> ';
                         label.setAttribute('for', field.id);
                         //Add to DOM
                         newDiv.appendChild(document.createElement('br'));
                         newDiv.appendChild(label);
-                        newDiv.appendChild(document.createElement('br'));
                         newDiv.appendChild(field);
                     })
                 } else {
@@ -308,12 +308,11 @@ function generatePerson(fetchData, type) {
                     field.setAttribute('value', fetchData[key][key2]);
                     //Create labels for input fields
                     let label = document.createElement('label');
-                    label.innerHTML = key2;
+                    label.innerHTML = key + ' | ' + '<strong>' + key2 + ': </strong> ';
                     label.setAttribute('for', field.id);
                     //Add to DOM
                     newDiv.appendChild(document.createElement('br'));
                     newDiv.appendChild(label);
-                    newDiv.appendChild(document.createElement('br'));
                     newDiv.appendChild(field);
                     // console.log(key);
                     // console.log("KEY: " + key2); // logs the key
@@ -329,20 +328,20 @@ function generatePerson(fetchData, type) {
             field.setAttribute('value', fetchData[key]);
             //Create labels for input fields
             let label = document.createElement('label');
-            label.innerHTML = key;
+            label.innerHTML = 'User | ' + '<strong>' + key + ': </strong>'; //hackish, but there is no key to grab onto
             label.setAttribute('for', field.id);
             //Add to DOM
             newDiv.appendChild(document.createElement('br'));
             newDiv.appendChild(label);
-            newDiv.appendChild(document.createElement('br'));
             newDiv.appendChild(field);
         }
 
 
 
 
-        // console.log("KEY: "+ key + ' | VALUE: ');
-        // console.log(fetchData[key]);
+        console.log("KEY: "+ key + ' | VALUE: ');
+        console.log(fetchData[key]);
+        console.log(key[fetchData]);
         //Need "U SURE U WANT TO DELETE?" ONCLICK --> FETCH DELETE
     }
 
