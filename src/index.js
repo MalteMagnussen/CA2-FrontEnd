@@ -236,7 +236,7 @@ function writeToPTagPrPerson(jsondata) {
     });
 
     let stringToWrite =
-        "<br>Firstname: " + jsondata['firstName'] + ' ' + jsondata['lastName']
+        "<br>Full name: " + jsondata['firstName'] + ' ' + jsondata['lastName']
         + "<br>e-mail: " + jsondata['email'];
     if (!isNullOrUndefined(jsondata['address'])) {
         stringToWrite = stringToWrite + "<br>Address: " + jsondata['address']['street'] + ', '
