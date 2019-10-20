@@ -35,6 +35,19 @@
       <div class="card-body toStyle caTwoFont">
         <div class="row container">
           <div id=allHobbies></div>
+          <div id="editHobby" hidden="hidden">
+            <div id="editHobbyInnerDiv">
+              <h5>Editing hobby</h5>
+              <label for="hobbyTitleEditMenu">Hobby name: </label>
+              <p id="hobbyTitleEditMenu"></p>
+              <label for="hobbyDescriptionEditMenu">Hobby description: </label>
+              <br>
+              <textarea id="hobbyDescriptionEditMenu" placeholder="description"></textarea>
+              <br>
+              <button id="confirmEditHobby" type="button">Confirm Edit</button>
+            </div>
+            <div id="editHobbyMessage"></div>
+          </div>
         </div>
         <div class="row container">
           <div id=viewAllPersonsWithHobby></div>
