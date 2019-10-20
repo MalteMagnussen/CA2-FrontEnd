@@ -3,15 +3,14 @@
 
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link href="style.css" rel="stylesheet">
+  <!-- <link href="style.css" rel="stylesheet"> -->
 </head>
 
 <body>
-
   <!-- Navigation Links -->
   <!-- Using Hashes https://www.w3schools.com/jsref/prop_loc_hash.asp -->
-  <nav class="navbar navbar-expand-lg navbar-light bg-light" id="navbar">
-    <a class="navbar-brand" href="#home">Hold Krykke</a>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark caTwoFont" id="navbar">
+    <a class="navbar-brand" href="#home">{ Hold Krykke }</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
       aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
@@ -19,31 +18,44 @@
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav" id="navbarNav">
         <li class="nav-item" id="#home">
-          <a class="nav-link" href="#home">Home </a>
+          <a class="nav-link" href="#home">| Home |</a>
         </li>
         <li class="nav-item" id="#get">
-          <a class="nav-link" href="#get">Get/Update Info</a>
-        </li>
-        <li class="nav-item" id="#add">
-          <a class="nav-link" href="#add">Add Users</a>
+          <a class="nav-link" href="#get">| Endpoints |</a>
         </li>
         <li class="nav-item" id="#scrum">
-          <a class="nav-link" href="#scrum">Scrum Plan</a>
+          <a class="nav-link" href="#scrum">| Scrum Plan |</a>
         </li>
       </ul>
     </div>
   </nav>
-  <!-- Navigation End -->
+  <main role="main">
+    <div class="junbotron">
+      <div class="container">
+        <h3 class="display-4 caTwoFont pl-1"> Course Assignment Two</h3>
+      </div>
 
-  <!-- Dynamic Content will be placed here by JavaScript -->
-  <div id="content"></div>
-
-  <div id=mainDiv class="container">
-    <div class="row">
     </div>
-    
-  </div>
+  </main>
+
+  <!-- Navigation End -->
+  <!-- Dynamic Content will be placed here by JavaScript -->
+  <div id="content" class="container caTwoFont"></div>
+
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+    integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+    crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+    integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+    crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+    integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+    crossorigin="anonymous"></script>
+  <script src="https://kit.fontawesome.com/dbf975ea69.js"></script>
   <script src="bundle.js"></script>
+  <link rel="shortcut icon" href="/CA-1/favicon.ico" />
+  <link href="https://fonts.googleapis.com/css?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link href="style.css" rel="stylesheet">
 </body>
 
 </html>

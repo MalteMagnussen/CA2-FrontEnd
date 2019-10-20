@@ -1,19 +1,182 @@
-<p id="staticPTag"></p>
-<div class="col">
-    <div id=viewPersonWithData></div>
+<div class="accordion" id="accordionExample">
+  <div class="card">
+    <div class="card-header positionRelative" id="headingOne">
+      <i class="fas fa-users imgHeaderAbsolute iconWhite"></i>
+      <h2 class="mb-0">
+        <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseOne"
+          aria-expanded="true" aria-controls="collapseOne">
+          Users
+        </button>
+      </h2>
+    </div>
+    <div id="collapseOne" class="collapse" aria-labelledby="headingOne" data-parent="#accordionExample">
+      <div class="card-body toStyle caTwoFont">
+
+        <div class="row container">
+          <div id=viewPersonWithData></div>
+        </div>
+        <div class="row container">
+          <div id=viewAllPersonsWithData></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header positionRelative" id="headingTwo">
+      <i class="fas fa-icons imgHeaderAbsolute iconWhite"></i>
+      <h2 class="mb-0">
+        <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseTwo"
+          aria-expanded="false" aria-controls="collapseTwo">
+          Hobbies
+        </button>
+      </h2>
+    </div>
+    <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionExample">
+      <div class="card-body toStyle caTwoFont">
+        <div class="row container">
+          <div id=allHobbies></div>
+          <div id="editHobby" hidden="hidden">
+            <div id="editHobbyInnerDiv">
+              <h5>Editing hobby</h5>
+              <label for="hobbyTitleEditMenu">Hobby name: </label>
+              <p id="hobbyTitleEditMenu"></p>
+              <label for="hobbyDescriptionEditMenu">Hobby description: </label>
+              <br>
+              <textarea id="hobbyDescriptionEditMenu" placeholder="description"></textarea>
+              <br>
+              <button id="confirmEditHobby" type="button">Confirm Edit</button>
+            </div>
+            <div id="editHobbyMessage"></div>
+          </div>
+        </div>
+        <div class="row container">
+          <div id=viewAllPersonsWithHobby></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header positionRelative" id="headingThree">
+      <i class="fas fa-map-marked-alt imgHeaderAbsolute iconWhite"></i>
+      <h2 class="mb-0">
+        <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseThree"
+          aria-expanded="false" aria-controls="collapseThree">
+          Zipcodes & City
+        </button>
+      </h2>
+    </div>
+    <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordionExample">
+      <div class="card-body toStyle caTwoFont">
+        <div class="row container">
+          <div id=viewZipCodeData></div>
+        </div>
+        <div class="row container">
+          <div id=viewAllPersonsWithZip></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header positionRelative" id="headingFour">
+      <i class="fas fa-user-plus imgHeaderAbsolute iconWhite"></i>
+      <h2 class="mb-0">
+        <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseFour"
+          aria-expanded="false" aria-controls="collapseFour">
+          Add
+        </button>
+      </h2>
+    </div>
+    <div id="collapseFour" class="collapse" aria-labelledby="headingFour" data-parent="#accordionExample">
+      <div class="card-body toStyle caTwoFont">
+        <div class="row container">
+          <div id="addPersonSimple" class="form-group">
+            <h3>Add a person</h3>
+            <label for="inputFirstNamePersonSimple">First name:</label>
+            <input id="inputFirstNamePersonSimple">
+            <br>
+            <label for="inputLastNamePersonSimple">Last name:</label>
+            <input id="inputLastNamePersonSimple">
+            <br>
+            <label for="inputEmailPersonSimple">Email:</label>
+            <input id="inputEmailPersonSimple" type="email">
+            <br>
+            <br>
+            <button id="createSimplePerson" class="btn btn-primary" type="button">Create person</button>
+          </div>
+          <br>
+          <div id="outputPersonSimple"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header positionRelative" id="headingFive">
+      <i class="fas fa-user-plus imgHeaderAbsolute iconWhite"></i>
+      <h2 class="mb-0">
+        <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseFive"
+          aria-expanded="false" aria-controls="collapseFive">
+          Add all
+        </button>
+      </h2>
+    </div>
+    <div id="collapseFive" class="collapse" aria-labelledby="headingFive" data-parent="#accordionExample">
+      <div class="card-body toStyle caTwoFont">
+        <div class="row container">
+          <div id="createAll" class="form-group">
+            <h3>Add a person</h3>
+            <div id="createAllLeft">
+              <label for="inputFirstNameCreateAll">First name:</label>
+              <input id="inputFirstNameCreateAll">
+              <br>
+              <label for="inputLastNameCreateAll">Last name:</label>
+              <input id="inputLastNameCreateAll">
+              <br>
+              <label for="inputEmailCreateAll">Email:</label>
+              <input id="inputEmailCreateAll" placeholder="email@mail.com" type="email">
+              <br>
+              <label for="inputPhoneCreateAll">Phone:</label>
+              <input id="inputPhoneCreateAll" type="number">
+              <br>
+              <label for="inputPhoneDescriptionCreateAll">Phone description:</label>
+              <input id="inputPhoneDescriptionCreateAll">
+              <br>
+              <br>
+              <p>Address</p>
+              <label for="inputAddressStreetCreateAll">Street:</label>
+              <input id="inputAddressStreetCreateAll">
+              <br>
+              <label for="inputAddressInfoCreateAll">Additional information:</label>
+              <input id="inputAddressInfoCreateAll">
+              <br>
+              <br>
+              <button id="buttonCreateAll" class="btn btn-primary" type="button">Create</button>
+              <br>
+              <br>
+              <div id="outputCreateAll"></div>
+            </div>
+            <div id="createAllRight">
+              <p>City</p>
+              <label for="inputCityZipCreateAll">Zip code:</label>
+              <input id="inputCityZipCreateAll" placeholder="0000">
+              <br>
+              <label for="inputCityNameCreateAll">City name:</label>
+              <input id="inputCityNameCreateAll" placeholder="city" disabled="true">
+              <p id="cityStatus">-- New city --</p>
+              <br>
+              <br>
+              <p>Hobby</p>
+              <label for="inputHobbyNameCreateAll">Name:</label>
+              <input id="inputHobbyNameCreateAll">
+              <p id="hobbyStatus">-- New hobby --</p>
+              <label for="inputHobbyDescriptionCreateAll">Hobby description:</label>
+              <textarea id="inputHobbyDescriptionCreateAll" placeholder="Short description" disabled="true"></textarea>
+              <br>
+              <br>
+            </div>
+            <br>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
-<div class="col">
-    <div id=viewAllPersonsWithData></div>
-  </div>
-  <div class="col">
-    <div id=allHobbies></div>
-  </div>
-  <div class="col">
-    <div id=viewAllPersonsWithHobby></div>
-  </div>
-  <div class="col">
-    <div id=viewZipCodeData></div>
-  </div>
-  <div class="col">
-    <div id=viewAllPersonsWithZip></div>
-  </div>

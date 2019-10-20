@@ -61,13 +61,7 @@ function navigate() {
     getContent(fragment, function (content) {
         contentDiv.innerHTML = content;
         switch (fragment) {
-            case "get":
-                get();
-                break;
-            case "add":
-                add();
-                break;
-
+            case "get": endpoints(); break;
         }
     });
     changeActiveNavbarElement();
@@ -106,16 +100,62 @@ function handleHttpErrors(res) {
 }
 
 /*---------------------------------------------*/
+/*----------------- Begin CSS -----------------*/
+/*---------------------------------------------*/
+
+
+function addCssToElementChildren(elementIdParent, element, cssClassArray) {
+    let htmlElementList = document.getElementById(elementIdParent).querySelectorAll(element);
+    Array.from(htmlElementList).forEach(element => {
+        cssClassArray.forEach(cssClass => {
+            element.classList.add(cssClass);
+        })
+    });
+}
+
+function addCssToElementChildrenFromClass(elementClassParent, element, cssClassArray) {
+    let htmlParents = document.getElementsByClassName(elementClassParent)
+    Array.from(htmlParents).forEach(htmlParent => {
+        let htmlChild = htmlParent.querySelectorAll(element);
+        Array.from(htmlChild).forEach(element => {
+            cssClassArray.forEach(cssClass => {
+                element.classList.add(cssClass);
+            })
+        });
+    });
+}
+
+function addCssToElement(element, cssClassArray) {
+    let htmlElement = document.querySelector(element);
+    cssClassArray.forEach(cssClass => {
+        htmlElement.classList.add(cssClass);
+    });
+
+}
+
+/*---------------------------------------------*/
+/*------------------ End CSS ------------------*/
+/*---------------------------------------------*/
+
+/*---------------------------------------------*/
 /*------------ Begin All GET Calls ------------*/
 /*---------------------------------------------*/
 
-function get() {
+function endpoints() {
     fillViewPersonWithDataDiv();
     fillViewAllPersonsWithDataDiv();
     fillViewAllPersonsWithHobbyDiv();
     fillViewAllPersonsWithZipDiv();
     allHobbies();
-    allZipcodes()
+    allZipcodes();
+
+    document.getElementById("buttonCreateAll").addEventListener("click", createAll);
+
+    document.getElementById("inputCityZipCreateAll").addEventListener("input", actZipCode);
+
+    document.getElementById("inputHobbyNameCreateAll").addEventListener("input", actHobbyName);
+
+    document.getElementById("confirmEditHobby").addEventListener("click", confirmEditHobby);
 
     document.getElementById("viewPersonWithDataButtonTAG").addEventListener('click', function (event) {
         event.preventDefault();
@@ -134,6 +174,14 @@ function get() {
         event.preventDefault();
         allPersonsInCity();
     });
+    addCssToElementChildrenFromClass("toStyle", "button", ["btn", "btn-outline-dark"]);
+    addCssToElementChildren("content", "input", ["form-control"]);
+    
+    document.getElementById("createSimplePerson").addEventListener("click", function () {
+        addPersonSimple();
+    })
+    addCssToElementChildren("content", "button", ["btn", "btn-outline-dark"]);
+    addCssToElementChildren("content", "input", ["form-control"]);
 }
 
 /*---------------------------------------------*/
@@ -152,7 +200,7 @@ function fillViewPersonWithDataDiv() {
     let inputtag = document.createElement('input');
     inputtag.setAttribute('id', 'viewPersonWithDataInputTAG');
     inputtag.setAttribute('type', 'text');
-    inputtag.setAttribute('placeholder', 'UserName');
+    inputtag.setAttribute('placeholder', 'Name');
 
     let buttontag = document.createElement('button');
     buttontag.innerHTML = 'Get User';
@@ -178,10 +226,7 @@ function singleuser() {
             }).then(addUpdateButtons)
             .catch(err => {
                 if (err.status) {
-                    err.fullError.then(e => console.log(e.detail))
-                } else {
-                    console.log(err);
-                    console.log("Network error");
+                    err.fullError.then(e => document.getElementById('viewPersonWithDataPTAG').innerHTML = "Error: " + e.detail)
                 }
             });
     }
@@ -565,14 +610,8 @@ function emptyTag(divID) {
 /*---------------------------------------------*/
 /*---------- Begin Add Person Simple ----------*/
 /*---------------------------------------------*/
-function add() {
-    document.getElementById("createSimplePerson").addEventListener("click", function () {
-        addPersonSimple();
-    })
-}
-
 function addPersonSimple() {
-    var output = document.getElementById("output");
+    var output = document.getElementById("outputPersonSimple");
     fetch(url + "create/person", createPersonOptions())
         .then(res => handleHttpErrors(res))
         .then(function (data) {
@@ -585,17 +624,19 @@ function addPersonSimple() {
         })
         .catch(err => {
             if (err.status) {
-                err.fullError.then(e => output.innerHTML = "Error:<br><br>")
-            } else {
+                err.fullError.then(e => output.innerHTML = "Error:<br><br>Status: "
+                + e.code + "<br>" + e.message)
+            }
+            else {
                 console.log("Network error");
             }
         });
 }
 
 function createPersonOptions() {
-    var FirstName = document.getElementById("inputFirstName").value;
-    var LastName = document.getElementById("inputLastName").value;
-    var Email = document.getElementById("inputEmail").value;
+    var FirstName = document.getElementById("inputFirstNamePersonSimple").value;
+    var LastName = document.getElementById("inputLastNamePersonSimple").value;
+    var Email = document.getElementById("inputEmailPersonSimple").value;
     var Method = "POST";
     var data = {
         firstName: FirstName,
@@ -620,11 +661,221 @@ function createPersonOptions() {
 /*---------------------------------------------*/
 
 /*---------------------------------------------*/
+/*------------- Begin  Create All -------------*/
+/*---------------------------------------------*/
+
+var controller = new AbortController();
+var signal = controller.signal;
+
+function actHobbyName() {
+    controller.abort();
+    controller = new AbortController();
+    signal = controller.signal;
+    checkIfInputExists(false);
+}
+
+function actZipCode() {
+    controller.abort();
+    controller = new AbortController();
+    signal = controller.signal;
+    checkIfInputExists(true);
+}
+
+var lastExisted = false;
+function checkIfInputExists(isCity) {
+    //Data from DOM
+    var inputHobbyName = document.getElementById("inputHobbyNameCreateAll");
+    var inputHobbyDescription = document.getElementById("inputHobbyDescriptionCreateAll");
+    var hobbyStatus = document.getElementById("hobbyStatus");
+
+    var inputZipCode = document.getElementById("inputCityZipCreateAll");
+    var inputCityName = document.getElementById("inputCityNameCreateAll");
+    var cityStatus = document.getElementById("cityStatus");
+
+    //Variables based on boolean isCity
+    //If isCity then the function is being used to check if a city exists
+    //If not then the function is being used to check if a hobby exists
+    var checkValue;
+    var target;
+    var status;
+    var uriPart;
+    if (isCity) {
+        checkValue = inputZipCode;
+        target = inputCityName;
+        status = cityStatus;
+        uriPart = "city/zip/";
+    } else {
+        checkValue = inputHobbyName;
+        target = inputHobbyDescription;
+        status = hobbyStatus;
+        uriPart = "hobby/";
+    }
+
+    //End of variables
+
+    if (checkValue.value == null || checkValue.value === "") {
+        target.innerText = "";
+        target.value = "";
+        if (!target.hasAttribute("disabled")) {
+            target.setAttribute("disabled", "true");
+        }
+        return;
+    }
+    fetchCheckData(isCity, target, status, uriPart, checkValue);
+}
+
+function fetchCheckData(isCity, target, status, uriPart, checkValue) {
+    fetch(url + uriPart + checkValue.value, { signal })
+    .then(res => { return res.json(); })
+    .then(function (data) {
+        console.log(data);
+        if (data.city || data.description) {
+            let output;
+            if (isCity) {
+                output = data.city;
+            } else {
+                output = data.description;
+            }
+            if (data.name != null || data.city) {
+                target.innerText = "";
+                target.value = "";
+                status.innerHTML = "-- Existing ✓ --";
+                target.innerText = output;
+                target.value = output;
+                lastExisted = true;
+                if (!target.hasAttribute("disabled")) {
+                    target.setAttribute("disabled", "true");
+                }
+            }
+        } else {
+            //If we end up here it means that no hobby/city with the given name/zipcode was found
+            if (target.hasAttribute("disabled")) {
+                target.removeAttribute("disabled");
+            }
+            if (lastExisted) {
+                target.innerText = "";
+                target.value = "";
+                status.innerHTML = "-- New --";
+                lastExisted = false;
+            }
+        }
+    })
+    .catch(err => {
+        console.log("Request was canceled");
+    });
+}
+
+function createAll() {
+    //Output div
+    var outputCreateAll = document.getElementById("outputCreateAll");
+
+    fetch(url + "create-all", createAllOptions("POST"))
+    .then(res => handleHttpErrors(res))
+    .then(function (data) {
+        console.log(data);
+        outputCreateAll.innerHTML =
+            "ID: " + data.id + "<br>" +
+            "First name: " + data.firstName + "<br>" + "Last name: " + data.lastName + "<br>" +
+            "Email: " + data.email + "<br>" + "Address<br>Street: " + data.address.street + "<br>" +
+            "Additional inforamtion: " + data.address.additionalInfo + "<br>" + "City" + "<br>" +
+            "Name: " + data.address.cityInfo.city + "<br>" + "Zipcode: " + data.address.cityInfo.zipCode +
+            "<br>" + "Hobby" + "<br>" + "Name: " + data.hobbies[0].name + "<br>" + "Description: " +
+            data.hobbies[0].description;
+    })
+    .catch(err => {
+        if (err.status) {
+            err.fullError.then(e => outputCreateAll.innerHTML = "Error:<br><br>Status: "
+            + e.code + "<br>" + e.message)
+        }
+        else {
+            console.log("Network error");
+        }
+    });
+}
+
+//This function could be converted to a UTIL function and moved to the UTIL category 
+function createAllOptions(METHOD) {
+    //Data from DOM
+    
+    var inputFirstName = document.getElementById("inputFirstNameCreateAll");
+    var inputLastName = document.getElementById("inputLastNameCreateAll");
+    var inputEmail = document.getElementById("inputEmailCreateAll");
+    var inputPhone = document.getElementById("inputPhoneCreateAll");
+    var inputPhoneDescription = document.getElementById("inputPhoneDescriptionCreateAll");
+    var inputAddressStreet = document.getElementById("inputAddressStreetCreateAll");
+    var inputAddressInfo = document.getElementById("inputAddressInfoCreateAll");
+
+    var inputHobbyName = document.getElementById("inputHobbyNameCreateAll");
+    var inputHobbyDescription = document.getElementById("inputHobbyDescriptionCreateAll");
+
+    var inputZipCode = document.getElementById("inputCityZipCreateAll");
+    var inputCityName = document.getElementById("inputCityNameCreateAll");
+
+    var hobby = {
+        name: inputHobbyName.value,
+        description: inputHobbyDescription.value
+    }
+
+    var hobbies = []
+    hobbies[0] = hobby;
+
+    var phone = {
+        number: inputPhone.value,
+        description: inputPhoneDescription.value
+    }
+    if (!phone.number)
+    {
+        phone.number = -1;
+    }
+
+    var phones = []
+    phones[0] = phone;
+
+    var cityInfo = {
+        zipCode: inputZipCode.value,
+        city: inputCityName.value
+    }
+
+    var address = {
+        street: inputAddressStreet.value,
+        additionalInfo: inputAddressInfo.value,
+        cityInfo
+    }
+
+    var data = {
+        firstName: inputFirstName.value,
+        lastName: inputLastName.value,
+        email: inputEmail.value,
+        hobbies,
+        phones,
+        address
+    }
+
+    let options = {
+        method: METHOD,
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    }
+    console.log(options);
+    return options;
+}
+
+/*---------------------------------------------*/
+/*-------------- End  Create All --------------*/
+/*---------------------------------------------*/
+
+/*---------------------------------------------*/
 /*----------- Begin Get All Persons -----------*/
 /*---------------------------------------------*/
 
 function fillViewAllPersonsWithDataDiv() {
     emptyTag('viewAllPersonsWithData');
+    let divtag = document.createElement('div');
+    divtag.classList.add('tableDiv');
+
     let ptag = document.createElement('p');
     ptag.setAttribute('id', 'viewAllPersonsWithDataPTAG');
 
@@ -636,6 +887,7 @@ function fillViewAllPersonsWithDataDiv() {
     tabletag.setAttribute('id', 'viewAllPersonsWithDataTableTAG');
 
     let div = document.getElementById('viewAllPersonsWithData');
+    div.appendChild(divtag);
     div.appendChild(buttontag);
     div.appendChild(ptag);
     div.appendChild(tabletag);
@@ -675,7 +927,6 @@ function allUsersToTableTag() {
             tableHead(table, headdata);
             tableData(table, sortedData);
             fixTableHeaders();
-
         })
         .catch(err => {
             if (err.status) {
@@ -695,8 +946,10 @@ function tableHead(table, headData) {
         th.classList.add(key);
         th.appendChild(text);
         row.appendChild(th);
+        table.classList.add("table");
+        table.classList.add("table-hover");
+        head.classList.add("thead-dark");
     }
-
 }
 
 function tableData(table, bodyData) {
@@ -712,7 +965,8 @@ function tableData(table, bodyData) {
             if (typeof element[key] === 'object') {
                 if (key === 'address') {
                     cellValue = obj.address.street + ', ' + obj.address.cityInfo.zipCode + ' ' + obj.address.cityInfo.city;
-                } else if (key === 'hobbies') {
+                }
+                else if (key === 'hobbies') {
                     obj.hobbies.forEach(hobby => {
                         cellValue = cellValue + hobby.name + ', ';
                     });
@@ -723,9 +977,11 @@ function tableData(table, bodyData) {
                     });
                     cellValue = cellValue.slice(0, -2);
                 }
-            } else if (element[key]) {
+            }
+            else if (element[key]) {
                 cellValue = element[key];
-            } else {
+            }
+            else {
                 cellValue = cellValue;
             }
             let text = document.createTextNode(cellValue);
@@ -817,7 +1073,9 @@ function allHobbies() {
                 let obj = JSON.parse(JSON.stringify(element));
                 hobbiesArray.push(obj.hobbies);
             });
-            fillHobbiesDropDownDiv(hobbiesArray)
+            fillHobbiesDropDownDiv(hobbiesArray);
+            addCssToElementChildrenFromClass("toStyle", "button", ["btn", "btn-outline-dark"]);
+            addCssToElementChildren("content", "select", ["form-control"]);
         })
         .catch(err => {
             if (err.status) {
@@ -855,15 +1113,27 @@ function fillHobbiesDropDownDiv(allhobbies) {
     buttontag.innerHTML = 'Get Hobby';
     buttontag.setAttribute('id', 'hobbiesDropDownButtonTAG');
 
+    let buttontagedit = document.createElement('button');
+    buttontagedit.innerHTML = 'Edit Hobby';
+    buttontagedit.setAttribute('id', 'editHobbyButton');
+    buttontagedit.setAttribute('hidden', 'hidden');
+
     let div = document.getElementById('allHobbies');
     div.appendChild(selecttag);
     div.appendChild(buttontag);
+    div.appendChild(buttontagedit);
     div.appendChild(ptag);
 
     document.getElementById("hobbiesDropDownButtonTAG").addEventListener('click', function (event) {
         event.preventDefault();
         getHobbyByName();
+        var outputMessageDiv = document.getElementById("editHobbyMessage");
+        outputMessageDiv.innerHTML = "";
+        var output = document.getElementById("editHobby");
+        output.setAttribute("hidden", "hidden");
     });
+
+    document.getElementById("editHobbyButton").addEventListener("click", spawnAndUpdateEditHobbyMenu);
 }
 
 function dropDownData(allhobbies) {
@@ -875,6 +1145,80 @@ function dropDownData(allhobbies) {
     })
     let uniqueHobbyNames = Array.from(new Set(hobbyNames));
     return uniqueHobbyNames;
+}
+
+function spawnAndUpdateEditHobbyMenu() {
+    var output = document.getElementById("editHobby");
+    var outputInner = document.getElementById("editHobbyInnerDiv");
+    if (output.getAttribute("hidden"))
+    {
+        output.removeAttribute("hidden");
+    }
+    if (outputInner.getAttribute("hidden"))
+    {
+        outputInner.removeAttribute("hidden");
+    }
+    var name = document.getElementById("hobbyTitleEditMenu");
+    name.innerHTML = latestHobbyName;
+
+    var outputMessageDiv = document.getElementById("editHobbyMessage");
+    outputMessageDiv.innerHTML = "";
+
+    var description = document.getElementById("hobbyDescriptionEditMenu");
+    description.value = latestHobbyDescription;
+    description.innerText = latestHobbyDescription;
+}
+
+var latestHobbyID = 0;
+var latestHobbyName = "";
+var latestHobbyDescription = "";
+
+function confirmEditHobby() {
+    var outputMessageDiv = document.getElementById("editHobbyMessage");
+    var innerEditMenu = document.getElementById("editHobbyInnerDiv");
+    fetch(url + "hobby", createHobbyOptions())
+        .then(res => handleHttpErrors(res))
+        .then(function (data) {
+            console.log(data);
+            innerEditMenu.setAttribute("hidden", "hidden");
+            outputMessageDiv.innerHTML = "Hobby successfully edited";
+        })
+        .catch(err => {
+            if (err.status) {
+                innerEditMenu.setAttribute("hidden", "hidden");
+                err.fullError.then(e => outputMessageDiv.innerHTML = "Error:<br><br>Status: "
+                + e.code + "<br>" + e.message);
+            }
+            else {
+                console.log("Network error");
+            }
+        });
+}
+
+function createHobbyOptions() {
+    var newDescription = document.getElementById("hobbyDescriptionEditMenu");
+    var Method = "PUT";
+    var data = {
+        name: latestHobbyName,
+        description: newDescription.value,
+        id: latestHobbyID
+    }
+
+    if (data.description == "")
+    {
+        data.description = "No description";
+    }
+
+    let options = {
+        method: Method,
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    }
+    console.log(options);
+    return options;
 }
 
 function getHobbyByName() {
@@ -889,6 +1233,12 @@ function getHobbyByName() {
             .then(handleHttpErrors)
             .then(fetchedData => {
                 document.getElementById('allHobbiesPTAG').innerHTML = writeToPTagPrHobby(fetchedData);
+                if (document.getElementById('editHobbyButton').getAttribute("hidden")) {
+                    document.getElementById('editHobbyButton').removeAttribute("hidden");
+                }
+                latestHobbyName = fetchedData.name;
+                latestHobbyDescription = fetchedData.description;
+                latestHobbyID = fetchedData.id;
             })
             .catch(err => {
                 if (err.status) {
@@ -949,8 +1299,8 @@ function fillViewAllPersonsWithHobbyDiv() {
     tabletag.setAttribute('id', 'viewAllPersonsWithHobbyTableTAG');
 
     let div = document.getElementById('viewAllPersonsWithHobby');
-    div.appendChild(ptag);
     div.appendChild(buttontag);
+    div.appendChild(ptag);
     div.appendChild(tabletag);
 }
 
@@ -967,7 +1317,9 @@ function allZipcodes() {
     fetch(urlAll)
         .then(handleHttpErrors)
         .then(jsondata => {
-            fillZipCodeDiv(jsondata)
+            fillZipCodeDiv(jsondata);
+            addCssToElementChildrenFromClass("toStyle", "button", ["btn", "btn-outline-dark"]);
+            addCssToElementChildren("content", "select", ["form-control"]);
         })
         .catch(err => {
             if (err.status) {
@@ -1105,8 +1457,8 @@ function fillViewAllPersonsWithZipDiv() {
     tabletag.setAttribute('id', 'viewAllPersonsWithZipTableTAG');
 
     let div = document.getElementById('viewAllPersonsWithZip');
-    div.appendChild(ptag);
     div.appendChild(buttontag);
+    div.appendChild(ptag);
     div.appendChild(tabletag);
 }
 

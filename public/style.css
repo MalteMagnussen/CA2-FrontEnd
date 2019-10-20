@@ -3,6 +3,25 @@ body {
    font-family: Arial, Helvetica, sans-serif;
 }
 
+#createAllLeft {
+   float: left;
+   width: 55%;
+}
+
+#createAllRight {
+   padding-left: 30px;
+   float: right;
+   width: 45%;
+}
+
+#addPersonSimple {
+   padding-right: 30px;
+}
+
+#editHobby {
+   padding-left: 30px;
+}
+
 .container {
    margin-top: 2em;
    max-width: 1200px;
@@ -10,6 +29,76 @@ body {
    margin-right: auto;
 }
 
+.toStyle{
+   font-family: Arial, Helvetica, sans-serif;
+}
+
+.card-header{
+   background-color: #343a40;
+   padding-left: 40px;
+}
+
+.btn-link {
+   font-weight: 400;
+   color: #ffffff;
+   text-decoration: none;
+}
+
+.btn-link:hover {
+   color: #d5dbdb;
+   text-decoration: none;
+}
+
+.btn-link:focus, .btn-link.focus {
+   text-decoration: none;
+   box-shadow: none;
+}
+
+.positionRelative{
+   position: relative;
+}
+
+.buttonimgabsolute{
+   position: absolute; 
+   top:8px; 
+   left:8px;
+}
+
+.imgHeaderAbsolute{
+   position: absolute; 
+   top:24px; 
+   left:20px;
+}
+
+.imgButtonAbsolute{
+   position: absolute; 
+   top:8px; 
+   left:8px;
+}
+
+.buttonPaddingLeft{
+   padding-left:30px;
+}
+
+.buttonPaddingLeftTravis{  
+   padding-left:50px;
+}
+
+.buttonimgabsolutefavicon{
+   position: absolute;
+   top:10px; 
+   left:10px;
+}
+
+.iconWhite{
+   color: white;
+}
+
+.caTwoFont{
+   /* font-family: 'Share Tech Mono', monospace; */
+   /* font-family: 'Major Mono Display', monospace; */
+   font-family: 'Source Code Pro', monospace;
+}
 /* Style the Navigation bar links   
 #navbar a {
    background-color: lightblue;

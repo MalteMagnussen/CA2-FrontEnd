@@ -1,4 +1,8 @@
 # CA2-FrontEnd
  FrontEnd repo for Course Assignment 2. Hold Krykke. 
 
-[Travis build log](https://travis-ci.org/MalteMagnussen/CA2-FrontEnd) : [![Build Status](https://travis-ci.org/MalteMagnussen/CA2-FrontEnd.svg?branch=master)](https://travis-ci.org/MalteMagnussen/CA2-FrontEnd)
+* [Deployment](https://holdkrykke.surge.sh)
+
+* [BackEnd Repo](https://github.com/MalteMagnussen/CA2)
+
+* [Assignment description](https://docs.google.com/document/d/1KwvtlWjx-FINtFSUfkybmThiOaHmSonQgOhssf3hkdU)
