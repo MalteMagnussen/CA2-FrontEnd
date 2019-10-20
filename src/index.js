@@ -147,6 +147,8 @@ function endpoints() {
 
     document.getElementById("inputHobbyNameCreateAll").addEventListener("input", actHobbyName);
 
+    document.getElementById("confirmEditHobby").addEventListener("click", confirmEditHobby);
+
     document.getElementById("viewPersonWithDataButtonTAG").addEventListener('click', function (event) {
         event.preventDefault();
         singleuser();
@@ -166,7 +168,7 @@ function endpoints() {
     });
     addCssToElementChildrenFromClass("toStyle", "button", ["btn", "btn-outline-dark"]);
     addCssToElementChildren("content", "input", ["form-control"]);
-
+    
     document.getElementById("createSimplePerson").addEventListener("click", function () {
         addPersonSimple();
     })
@@ -761,15 +763,27 @@ function fillHobbiesDropDownDiv(allhobbies) {
     buttontag.innerHTML = 'Get Hobby';
     buttontag.setAttribute('id', 'hobbiesDropDownButtonTAG');
 
+    let buttontagedit = document.createElement('button');
+    buttontagedit.innerHTML = 'Edit Hobby';
+    buttontagedit.setAttribute('id', 'editHobbyButton');
+    buttontagedit.setAttribute('hidden', 'hidden');
+
     let div = document.getElementById('allHobbies');
     div.appendChild(selecttag);
     div.appendChild(buttontag);
+    div.appendChild(buttontagedit);
     div.appendChild(ptag);
 
     document.getElementById("hobbiesDropDownButtonTAG").addEventListener('click', function (event) {
         event.preventDefault();
         getHobbyByName();
+        var outputMessageDiv = document.getElementById("editHobbyMessage");
+        outputMessageDiv.innerHTML = "";
+        var output = document.getElementById("editHobby");
+        output.setAttribute("hidden", "hidden");
     });
+
+    document.getElementById("editHobbyButton").addEventListener("click", spawnAndUpdateEditHobbyMenu);
 }
 
 function dropDownData(allhobbies) {
@@ -781,6 +795,80 @@ function dropDownData(allhobbies) {
     })
     let uniqueHobbyNames = Array.from(new Set(hobbyNames));
     return uniqueHobbyNames;
+}
+
+function spawnAndUpdateEditHobbyMenu() {
+    var output = document.getElementById("editHobby");
+    var outputInner = document.getElementById("editHobbyInnerDiv");
+    if (output.getAttribute("hidden"))
+    {
+        output.removeAttribute("hidden");
+    }
+    if (outputInner.getAttribute("hidden"))
+    {
+        outputInner.removeAttribute("hidden");
+    }
+    var name = document.getElementById("hobbyTitleEditMenu");
+    name.innerHTML = latestHobbyName;
+
+    var outputMessageDiv = document.getElementById("editHobbyMessage");
+    outputMessageDiv.innerHTML = "";
+
+    var description = document.getElementById("hobbyDescriptionEditMenu");
+    description.value = latestHobbyDescription;
+    description.innerText = latestHobbyDescription;
+}
+
+var latestHobbyID = 0;
+var latestHobbyName = "";
+var latestHobbyDescription = "";
+
+function confirmEditHobby() {
+    var outputMessageDiv = document.getElementById("editHobbyMessage");
+    var innerEditMenu = document.getElementById("editHobbyInnerDiv");
+    fetch(url + "hobby", createHobbyOptions())
+        .then(res => handleHttpErrors(res))
+        .then(function (data) {
+            console.log(data);
+            innerEditMenu.setAttribute("hidden", "hidden");
+            outputMessageDiv.innerHTML = "Hobby successfully edited";
+        })
+        .catch(err => {
+            if (err.status) {
+                innerEditMenu.setAttribute("hidden", "hidden");
+                err.fullError.then(e => outputMessageDiv.innerHTML = "Error:<br><br>Status: "
+                + e.code + "<br>" + e.message);
+            }
+            else {
+                console.log("Network error");
+            }
+        });
+}
+
+function createHobbyOptions() {
+    var newDescription = document.getElementById("hobbyDescriptionEditMenu");
+    var Method = "PUT";
+    var data = {
+        name: latestHobbyName,
+        description: newDescription.value,
+        id: latestHobbyID
+    }
+
+    if (data.description == "")
+    {
+        data.description = "No description";
+    }
+
+    let options = {
+        method: Method,
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    }
+    console.log(options);
+    return options;
 }
 
 function getHobbyByName() {
@@ -796,6 +884,12 @@ function getHobbyByName() {
             .then(handleHttpErrors)
             .then(fetchedData => {
                 document.getElementById('allHobbiesPTAG').innerHTML = writeToPTagPrHobby(fetchedData);
+                if (document.getElementById('editHobbyButton').getAttribute("hidden")) {
+                    document.getElementById('editHobbyButton').removeAttribute("hidden");
+                }
+                latestHobbyName = fetchedData.name;
+                latestHobbyDescription = fetchedData.description;
+                latestHobbyID = fetchedData.id;
             })
             .catch(err => {
                 if (err.status) {
