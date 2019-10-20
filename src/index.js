@@ -61,7 +61,9 @@ function navigate() {
     getContent(fragment, function (content) {
         contentDiv.innerHTML = content;
         switch (fragment) {
-            case "get": endpoints(); break;
+            case "get":
+                endpoints();
+                break;
         }
     });
     changeActiveNavbarElement();
@@ -176,7 +178,7 @@ function endpoints() {
     });
     addCssToElementChildrenFromClass("toStyle", "button", ["btn", "btn-outline-dark"]);
     addCssToElementChildren("content", "input", ["form-control"]);
-    
+
     document.getElementById("createSimplePerson").addEventListener("click", function () {
         addPersonSimple();
     })
@@ -381,9 +383,10 @@ var dataStore = (function () {
 
 function generatePerson(fetchData, type) {
     let div = document.getElementById('viewPersonWithData');
-    let newDiv = document.createElement('div');
     //Create div to display Person in
+    let newDiv = document.createElement('div');
     newDiv.setAttribute('id', 'updatePersonContainer');
+    newDiv.className = 'container'; //bootstrap styling 
     div.appendChild(newDiv);
 
     let outputField;
@@ -449,7 +452,7 @@ function generatePerson(fetchData, type) {
             field.innerHTML = fetchData[key];
             //Create labels for input fields
             let label = document.createElement('label');
-            label.innerHTML = 'User | ' + '<strong>' + key + ': </strong>'; //hackish, but there is no key to grab onto
+            label.innerHTML = 'user | ' + '<strong>' + key + ': </strong>'; //hackish, but there is no key to grab onto
             label.setAttribute('for', field.id);
             //Add to DOM
             newDiv.appendChild(document.createElement('br'));
@@ -494,7 +497,7 @@ function deletePerson(id) {
             let errorOutput = document.createElement('p');
             errorOutput.setAttribute('id', 'errorOutput');
             errorOutput.innerHTML = '<br>ERROR:<br>' + JSON.stringify(err);
-            document.getElementById('staticPTag').insertAdjacentElement('afterend', errorOutput);
+            document.getElementById('viewPersonWithData').insertAdjacentElement('beforebegin', errorOutput);
         });
 };
 /*----------------------------------------*/
@@ -588,7 +591,7 @@ function editPerson() {
             let errorOutput = document.createElement('p');
             errorOutput.setAttribute('id', 'errorOutput');
             errorOutput.innerHTML = '<br>ERROR:<br>' + JSON.stringify(err);
-            document.getElementById('staticPTag').insertAdjacentElement('afterend', errorOutput);
+            document.getElementById('viewPersonWithData').insertAdjacentElement('beforebegin', errorOutput);
         });
 }
 /*----------------------------------------*/
@@ -624,10 +627,9 @@ function addPersonSimple() {
         })
         .catch(err => {
             if (err.status) {
-                err.fullError.then(e => output.innerHTML = "Error:<br><br>Status: "
-                + e.code + "<br>" + e.message)
-            }
-            else {
+                err.fullError.then(e => output.innerHTML = "Error:<br><br>Status: " +
+                    e.code + "<br>" + e.message)
+            } else {
                 console.log("Network error");
             }
         });
@@ -682,6 +684,7 @@ function actZipCode() {
 }
 
 var lastExisted = false;
+
 function checkIfInputExists(isCity) {
     //Data from DOM
     var inputHobbyName = document.getElementById("inputHobbyNameCreateAll");
@@ -725,44 +728,48 @@ function checkIfInputExists(isCity) {
 }
 
 function fetchCheckData(isCity, target, status, uriPart, checkValue) {
-    fetch(url + uriPart + checkValue.value, { signal })
-    .then(res => { return res.json(); })
-    .then(function (data) {
-        console.log(data);
-        if (data.city || data.description) {
-            let output;
-            if (isCity) {
-                output = data.city;
+    fetch(url + uriPart + checkValue.value, {
+            signal
+        })
+        .then(res => {
+            return res.json();
+        })
+        .then(function (data) {
+            console.log(data);
+            if (data.city || data.description) {
+                let output;
+                if (isCity) {
+                    output = data.city;
+                } else {
+                    output = data.description;
+                }
+                if (data.name != null || data.city) {
+                    target.innerText = "";
+                    target.value = "";
+                    status.innerHTML = "-- Existing ✓ --";
+                    target.innerText = output;
+                    target.value = output;
+                    lastExisted = true;
+                    if (!target.hasAttribute("disabled")) {
+                        target.setAttribute("disabled", "true");
+                    }
+                }
             } else {
-                output = data.description;
-            }
-            if (data.name != null || data.city) {
-                target.innerText = "";
-                target.value = "";
-                status.innerHTML = "-- Existing ✓ --";
-                target.innerText = output;
-                target.value = output;
-                lastExisted = true;
-                if (!target.hasAttribute("disabled")) {
-                    target.setAttribute("disabled", "true");
+                //If we end up here it means that no hobby/city with the given name/zipcode was found
+                if (target.hasAttribute("disabled")) {
+                    target.removeAttribute("disabled");
+                }
+                if (lastExisted) {
+                    target.innerText = "";
+                    target.value = "";
+                    status.innerHTML = "-- New --";
+                    lastExisted = false;
                 }
             }
-        } else {
-            //If we end up here it means that no hobby/city with the given name/zipcode was found
-            if (target.hasAttribute("disabled")) {
-                target.removeAttribute("disabled");
-            }
-            if (lastExisted) {
-                target.innerText = "";
-                target.value = "";
-                status.innerHTML = "-- New --";
-                lastExisted = false;
-            }
-        }
-    })
-    .catch(err => {
-        console.log("Request was canceled");
-    });
+        })
+        .catch(err => {
+            console.log("Request was canceled");
+        });
 }
 
 function createAll() {
@@ -770,33 +777,32 @@ function createAll() {
     var outputCreateAll = document.getElementById("outputCreateAll");
 
     fetch(url + "create-all", createAllOptions("POST"))
-    .then(res => handleHttpErrors(res))
-    .then(function (data) {
-        console.log(data);
-        outputCreateAll.innerHTML =
-            "ID: " + data.id + "<br>" +
-            "First name: " + data.firstName + "<br>" + "Last name: " + data.lastName + "<br>" +
-            "Email: " + data.email + "<br>" + "Address<br>Street: " + data.address.street + "<br>" +
-            "Additional inforamtion: " + data.address.additionalInfo + "<br>" + "City" + "<br>" +
-            "Name: " + data.address.cityInfo.city + "<br>" + "Zipcode: " + data.address.cityInfo.zipCode +
-            "<br>" + "Hobby" + "<br>" + "Name: " + data.hobbies[0].name + "<br>" + "Description: " +
-            data.hobbies[0].description;
-    })
-    .catch(err => {
-        if (err.status) {
-            err.fullError.then(e => outputCreateAll.innerHTML = "Error:<br><br>Status: "
-            + e.code + "<br>" + e.message)
-        }
-        else {
-            console.log("Network error");
-        }
-    });
+        .then(res => handleHttpErrors(res))
+        .then(function (data) {
+            console.log(data);
+            outputCreateAll.innerHTML =
+                "ID: " + data.id + "<br>" +
+                "First name: " + data.firstName + "<br>" + "Last name: " + data.lastName + "<br>" +
+                "Email: " + data.email + "<br>" + "Address<br>Street: " + data.address.street + "<br>" +
+                "Additional inforamtion: " + data.address.additionalInfo + "<br>" + "City" + "<br>" +
+                "Name: " + data.address.cityInfo.city + "<br>" + "Zipcode: " + data.address.cityInfo.zipCode +
+                "<br>" + "Hobby" + "<br>" + "Name: " + data.hobbies[0].name + "<br>" + "Description: " +
+                data.hobbies[0].description;
+        })
+        .catch(err => {
+            if (err.status) {
+                err.fullError.then(e => outputCreateAll.innerHTML = "Error:<br><br>Status: " +
+                    e.code + "<br>" + e.message)
+            } else {
+                console.log("Network error");
+            }
+        });
 }
 
 //This function could be converted to a UTIL function and moved to the UTIL category 
 function createAllOptions(METHOD) {
     //Data from DOM
-    
+
     var inputFirstName = document.getElementById("inputFirstNameCreateAll");
     var inputLastName = document.getElementById("inputLastNameCreateAll");
     var inputEmail = document.getElementById("inputEmailCreateAll");
@@ -823,8 +829,7 @@ function createAllOptions(METHOD) {
         number: inputPhone.value,
         description: inputPhoneDescription.value
     }
-    if (!phone.number)
-    {
+    if (!phone.number) {
         phone.number = -1;
     }
 
@@ -965,8 +970,7 @@ function tableData(table, bodyData) {
             if (typeof element[key] === 'object') {
                 if (key === 'address') {
                     cellValue = obj.address.street + ', ' + obj.address.cityInfo.zipCode + ' ' + obj.address.cityInfo.city;
-                }
-                else if (key === 'hobbies') {
+                } else if (key === 'hobbies') {
                     obj.hobbies.forEach(hobby => {
                         cellValue = cellValue + hobby.name + ', ';
                     });
@@ -977,11 +981,9 @@ function tableData(table, bodyData) {
                     });
                     cellValue = cellValue.slice(0, -2);
                 }
-            }
-            else if (element[key]) {
+            } else if (element[key]) {
                 cellValue = element[key];
-            }
-            else {
+            } else {
                 cellValue = cellValue;
             }
             let text = document.createTextNode(cellValue);
@@ -1150,12 +1152,10 @@ function dropDownData(allhobbies) {
 function spawnAndUpdateEditHobbyMenu() {
     var output = document.getElementById("editHobby");
     var outputInner = document.getElementById("editHobbyInnerDiv");
-    if (output.getAttribute("hidden"))
-    {
+    if (output.getAttribute("hidden")) {
         output.removeAttribute("hidden");
     }
-    if (outputInner.getAttribute("hidden"))
-    {
+    if (outputInner.getAttribute("hidden")) {
         outputInner.removeAttribute("hidden");
     }
     var name = document.getElementById("hobbyTitleEditMenu");
@@ -1186,10 +1186,9 @@ function confirmEditHobby() {
         .catch(err => {
             if (err.status) {
                 innerEditMenu.setAttribute("hidden", "hidden");
-                err.fullError.then(e => outputMessageDiv.innerHTML = "Error:<br><br>Status: "
-                + e.code + "<br>" + e.message);
-            }
-            else {
+                err.fullError.then(e => outputMessageDiv.innerHTML = "Error:<br><br>Status: " +
+                    e.code + "<br>" + e.message);
+            } else {
                 console.log("Network error");
             }
         });
@@ -1204,8 +1203,7 @@ function createHobbyOptions() {
         id: latestHobbyID
     }
 
-    if (data.description == "")
-    {
+    if (data.description == "") {
         data.description = "No description";
     }
 
