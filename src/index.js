@@ -1,6 +1,10 @@
 import 'bootstrap/dist/css/bootstrap.css'
-import isNullOrUndefined from 'util';
-import type from 'os';
+import {
+    isNullOrUndefined
+} from 'util';
+import {
+    type
+} from 'os';
 
 /* The JavaScript Code for Navigation Dynamic Behavior */
 // Our Cache - Stores the partial .HTML pages.
@@ -169,14 +173,14 @@ function singleuser() {
         fetch(urlName)
             .then(handleHttpErrors)
             .then(fetchedData => {
-                generatePerson(fetchedData[0], 'delete');
-                PersonInQuestion = fetchedData[0]; //is this bad practice?
                 document.getElementById('viewPersonWithDataPTAG').innerHTML = writeToPTagPrPerson(fetchedData[0]);
+                dataStore.setData(fetchedData[0]); //To be used for edit/delete
             }).then(addUpdateButtons)
             .catch(err => {
                 if (err.status) {
                     err.fullError.then(e => console.log(e.detail))
                 } else {
+                    console.log(err);
                     console.log("Network error");
                 }
             });
@@ -191,7 +195,7 @@ function addUpdateButtons() {
     let output = document.getElementById('viewPersonWithDataPTAG');
 
     if (!output.innerHTML.includes('Type in a name (firstname + lastname')) {
-        let div = document.getElementById('viewPersonWithData');
+        let div = document.getElementById('viewPersonWithDataPTAG');
         //Edit button
         let btnEdit = document.createElement("button");
         btnEdit.innerHTML = 'Edit User';
@@ -202,6 +206,7 @@ function addUpdateButtons() {
         btnDelete.setAttribute('id', 'btnDelete');
 
         //Append to div-element
+        div.innerHTML += '<br>';
         div.appendChild(btnEdit);
         div.appendChild(btnDelete);
         div.innerHTML += '<br><br>'; //spacing for next object
@@ -213,11 +218,42 @@ function addUpdateButtons() {
         });
         document.getElementById("btnDelete").addEventListener('click', function (event) {
             event.preventDefault();
-            if (PersonInQuestion !== null || PersonInQuestion !== undefined) {
-                deletePerson(PersonInQuestion.id);
-            } else {
-                console.log("Fetch didnt save data properly");
+            if (document.getElementById('updatePersonContainer') != null) {
+                return;
             }
+            generatePerson(dataStore.getData(), 'delete');
+            //document.getElementById('updatePersonContainer').style.display = 'block';
+            let updateDiv = document.getElementById('updatePersonContainer');
+
+            //Confirm delete button
+            let btnConfirmDelete = document.createElement('button');
+            btnConfirmDelete.innerHTML = 'Confirm Delete'
+            btnConfirmDelete.setAttribute('id', 'btnConfirmDelete');
+
+            //Deny delete button
+            let btnDenyDelete = document.createElement('button');
+            btnDenyDelete.innerHTML = 'Do not Delete'
+            btnDenyDelete.setAttribute('id', 'btnDenyDelete');
+
+            //Append to div-element
+            updateDiv.appendChild(btnConfirmDelete);
+            updateDiv.appendChild(btnDenyDelete);
+            updateDiv.innerHTML += '<br><br>'; //spacing for next object
+
+            document.getElementById('btnConfirmDelete').addEventListener('click', function (event) {
+                event.preventDefault();
+                let id = dataStore.getData().id;
+                if (id !== null || id !== undefined) {
+                    deletePerson(id);
+                } else {
+                    console.log("Fetch didnt save data properly");
+                }
+            })
+
+            document.getElementById('btnDenyDelete').addEventListener('click', function (event) {
+                document.getElementById('viewPersonWithDataPTAG').innerHTML = ''; //reset
+                document.getElementById('updatePersonContainer').outerHTML = '';
+            })
         });
     }
 }
@@ -246,32 +282,45 @@ function writeToPTagPrPerson(jsondata) {
     return stringToWrite;
 }
 
-let PersonInQuestion; //is this bad practice?
+/**
+ * Store and retrieve fetchData
+ */
+var dataStore = (function () {
+    var data; // Private Variable
+
+    var pub = {}; // public object - returned at end of module
+
+    pub.setData = function (newData) {
+        data = newData;
+    };
+
+    pub.getData = function () {
+        return data;
+    }
+
+    return pub; // expose externally
+}()); //https://stackoverflow.com/a/10452789
+
 function generatePerson(fetchData, type) {
     let div = document.getElementById('viewPersonWithData');
     let newDiv = document.createElement('div');
     //Create div to display Person in
-    newDiv.setAttribute('id', 'updatePersonContainer') //needed?
-    newDiv.style.display = 'none';
+    newDiv.setAttribute('id', 'updatePersonContainer');
     div.appendChild(newDiv);
-    //newDiv.childNodes.setAttribute('hidden', true); //hmm -- ACTUALLY JUST HIDE THE WHOLE DIV? THEN APPEAR ON CLICK
 
     let outputField;
-    // if (type === 'delete')
-    // {
-    //     outputField = 'p';
-    // }
-    // else if (type === 'edit')
-    // {
-    //     outputField = 'input';
-    // }
-    // else{
-    //     console.log("Incorrect type specified");
-    // }
-
-    // for(var k in fetchData) {
-    //     console.log('KEY: ' + k, fetchData[k]);
-    //  }
+    if (type === 'delete')
+    {
+        outputField = 'p';
+    }
+    else if (type === 'edit')
+    {
+        outputField = 'input';
+    }
+    else{
+        console.log("Incorrect type specified");
+    }
+    
 
     for (let key in fetchData) {
         if (key.includes('id')) return; //we do not allow users to see/edit IDs
@@ -281,7 +330,7 @@ function generatePerson(fetchData, type) {
                 if (key2.includes('id')) return; //we do not allow users to see/edit IDs
 
                 if (typeof fetchData[key][key2] === 'object') { //If we have a nested, nested object
-                    console.log("NEST NEST");
+                    // console.log("NEST NEST");
 
                     Object.keys(fetchData[key][key2]).forEach(key3 => {
                         if (key3.includes('id')) return; //we do not allow users to see/edit IDs
@@ -339,9 +388,9 @@ function generatePerson(fetchData, type) {
 
 
 
-        console.log("KEY: "+ key + ' | VALUE: ');
-        console.log(fetchData[key]);
-        console.log(key[fetchData]);
+        // console.log("KEY: "+ key + ' | VALUE: ');
+        // console.log(fetchData[key]);
+        // console.log(key[fetchData]);
         //Need "U SURE U WANT TO DELETE?" ONCLICK --> FETCH DELETE
     }
 
@@ -372,14 +421,15 @@ function deletePerson(id) {
         .catch(err => {
             if (err.status) {
                 err.fullError.then(e => {
-                    let errorOutput = document.createElement('p');
-                    errorOutput.setAttribute('id', 'errorOutput');
-                    errorOutput.innerHTML = '<br>ERROR:<br>' + JSON.stringify(e);
-                    document.getElementById('staticPTag').insertAdjacentElement('afterend', errorOutput);
+                    console.log(e);
                 })
             } else {
                 console.log(err);
             }
+            let errorOutput = document.createElement('p');
+            errorOutput.setAttribute('id', 'errorOutput');
+            errorOutput.innerHTML = '<br>ERROR:<br>' + JSON.stringify(err);
+            document.getElementById('staticPTag').insertAdjacentElement('afterend', errorOutput);
         });
 };
 /*----------------------------------------*/
