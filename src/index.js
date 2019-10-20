@@ -309,18 +309,14 @@ function generatePerson(fetchData, type) {
     div.appendChild(newDiv);
 
     let outputField;
-    if (type === 'delete')
-    {
+    if (type === 'delete') {
         outputField = 'p';
-    }
-    else if (type === 'edit')
-    {
+    } else if (type === 'edit') {
         outputField = 'input';
-    }
-    else{
+    } else {
         console.log("Incorrect type specified");
     }
-    
+
 
     for (let key in fetchData) {
         if (key.includes('id')) return; //we do not allow users to see/edit IDs
@@ -338,9 +334,13 @@ function generatePerson(fetchData, type) {
                         // console.log(fetchData[key][key2][key3]);
                         // console.log(key3);
                         //Create fields
-                        let field = document.createElement('input');
+                        let field = document.createElement(`${outputField}`);
                         field.setAttribute('id', `${key}` + `${key2}` + `${key3}` + 'Input')
-                        field.setAttribute('value', fetchData[key][key2][key3]);
+                        if (type === 'delete') {
+                            field.innerHTML = fetchData[key][key2][key3];
+                        } else {
+                            field.setAttribute('value', fetchData[key][key2][key3]);
+                        }
                         //Create labels for input fields
                         let label = document.createElement('label');
                         label.innerHTML = key + ' | ' + '<strong>' + key3 + ': </strong> ';
@@ -352,9 +352,14 @@ function generatePerson(fetchData, type) {
                     })
                 } else {
                     //Create fields
-                    let field = document.createElement('input');
+                    let field = document.createElement(`${outputField}`);
                     field.setAttribute('id', `${key}` + `${key2}` + 'Input')
-                    field.setAttribute('value', fetchData[key][key2]);
+                    if (type === 'delete') {
+                        field.innerHTML = fetchData[key][key2];
+                    } else {
+
+                        field.setAttribute('value', fetchData[key][key2]);
+                    }
                     //Create labels for input fields
                     let label = document.createElement('label');
                     label.innerHTML = key + ' | ' + '<strong>' + key2 + ': </strong> ';
@@ -372,9 +377,13 @@ function generatePerson(fetchData, type) {
             })
         } else {
             //Create fields
-            let field = document.createElement('input');
+            let field = document.createElement(`${outputField}`);
             field.setAttribute('id', `${key}` + 'Input')
-            field.setAttribute('value', fetchData[key]);
+            if (type === 'delete') {
+                field.innerHTML = fetchData[key];
+            } else {
+                field.setAttribute('value', fetchData[key]);
+            }
             //Create labels for input fields
             let label = document.createElement('label');
             label.innerHTML = 'User | ' + '<strong>' + key + ': </strong>'; //hackish, but there is no key to grab onto
