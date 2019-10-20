@@ -295,6 +295,7 @@ function addUpdateButtons() {
                 document.getElementById('viewPersonWithDataPTAG').innerHTML = ''; //reset but keep <div>-shell for functionality
                 document.getElementById('updatePersonContainer').outerHTML = '';
             })
+            addCssToElementChildren("content", "button", ["btn", "btn-outline-dark"]);
         });
         //delete
         document.getElementById("btnDelete").addEventListener('click', function (event) {
@@ -335,7 +336,9 @@ function addUpdateButtons() {
                 document.getElementById('updatePersonContainer').outerHTML = '';
             })
         });
+        addCssToElementChildren("content", "button", ["btn", "btn-outline-dark"]);
     }
+    addCssToElementChildren("content", "button", ["btn", "btn-outline-dark"]);
 }
 
 function writeToPTagPrPerson(jsondata) {
@@ -384,9 +387,10 @@ var dataStore = (function () {
 function generatePerson(fetchData, type) {
     let div = document.getElementById('viewPersonWithData');
     //Create div to display Person in
+    let divContainer = document.createElement('div');
     let newDiv = document.createElement('div');
     newDiv.setAttribute('id', 'updatePersonContainer');
-    newDiv.className = 'container'; //bootstrap styling 
+    
     div.appendChild(newDiv);
 
     let outputField;
@@ -397,12 +401,6 @@ function generatePerson(fetchData, type) {
     } else {
         console.log("Incorrect type specified");
     }
-    // for (const key in fetchData) {
-    //     if (fetchData.hasOwnProperty(key)) {
-    //         const element = fetchData[key];
-    //         console.log(element);
-    //     }
-    // }
 
     for (let key in fetchData) {
         if (key.includes('id')) continue; //we do not allow users to see/edit IDs
@@ -461,13 +459,6 @@ function generatePerson(fetchData, type) {
             newDiv.appendChild(field);
         }
     }
-
-    //console.log(fetchData['email']);
-
-    //let deleteOutput2 = document.createElement('p')
-    // deleteOutput.setAttribute('id', "deleteOutput2");
-    // deleteOutput.innerHTML = 'Deleted the following person succesfully! <br>' + writeToPTagPrPerson(fetchData);
-    // div.appendChild(deleteOutput2);
 }
 /*----------------------------------------*/
 /*----------- BEGIN DELETE PERSON --------*/
