@@ -1,6 +1,10 @@
 import 'bootstrap/dist/css/bootstrap.css'
-import { isNullOrUndefined } from 'util';
-import { type } from 'os';
+import {
+    isNullOrUndefined
+} from 'util';
+import {
+    type
+} from 'os';
 
 /* The JavaScript Code for Navigation Dynamic Behavior */
 // Our Cache - Stores the partial .HTML pages.
@@ -57,11 +61,14 @@ function navigate() {
     getContent(fragment, function (content) {
         contentDiv.innerHTML = content;
         switch (fragment) {
-            case "get": endpoints(); break;
+            case "get":
+                endpoints();
+                break;
         }
     });
     changeActiveNavbarElement();
 }
+
 function changeActiveNavbarElement() {
     var btnContainer = document.getElementById("navbarNav");
     // Get all items with class="nav-item" inside the container
@@ -86,7 +93,10 @@ const testurl = 'http://localhost:8080/CA2/api/search/';
 
 function handleHttpErrors(res) {
     if (!res.ok) {
-        return Promise.reject({ status: res.status, fullError: res.json() })
+        return Promise.reject({
+            status: res.status,
+            fullError: res.json()
+        })
     }
     return res.json();
 }
@@ -151,7 +161,7 @@ function endpoints() {
 
     document.getElementById("viewPersonWithDataButtonTAG").addEventListener('click', function (event) {
         event.preventDefault();
-        singleuser();
+        singleuser(); //also calls addUpdateButtons. Could have been done with callbacks, or promises here.
     });
     document.getElementById("viewAllPersonsWithDataButtonTAG").addEventListener('click', function (event) {
         event.preventDefault();
@@ -168,7 +178,7 @@ function endpoints() {
     });
     addCssToElementChildrenFromClass("toStyle", "button", ["btn", "btn-outline-dark"]);
     addCssToElementChildren("content", "input", ["form-control"]);
-    
+
     document.getElementById("createSimplePerson").addEventListener("click", function () {
         addPersonSimple();
     })
@@ -206,23 +216,129 @@ function fillViewPersonWithDataDiv() {
 
 function singleuser() {
     let username = document.getElementById('viewPersonWithDataInputTAG').value;
-    if (!username) {
-        document.getElementById('viewPersonWithDataPTAG').innerHTML = 'Type in a name'
-    }
-    else {
+    if (!username || !(username.includes(' '))) {
+        document.getElementById('viewPersonWithDataPTAG').innerHTML = 'Type in a name (firstname + lastname)'
+    } else {
         let urlName = url + 'person/' + username;
         fetch(urlName)
             .then(handleHttpErrors)
             .then(fetchedData => {
                 document.getElementById('viewPersonWithDataPTAG').innerHTML = writeToPTagPrPerson(fetchedData[0]);
-            })
+                dataStore.setData(fetchedData[0]); //To be used for edit/delete
+            }).then(addUpdateButtons)
             .catch(err => {
                 if (err.status) {
                     err.fullError.then(e => document.getElementById('viewPersonWithDataPTAG').innerHTML = "Error: " + e.detail)
                 }
-                else { console.log("Network error"); }
             });
     }
+    return true;
+}
+
+/**
+ * Adds edit/delete buttons to div only when a user has been fetched
+ */
+function addUpdateButtons() {
+    let output = document.getElementById('viewPersonWithDataPTAG');
+
+    if (!output.innerHTML.includes('Type in a name (firstname + lastname')) {
+        let div = document.getElementById('viewPersonWithDataPTAG');
+        //Edit button
+        let btnEdit = document.createElement("button");
+        btnEdit.innerHTML = 'Edit User';
+        btnEdit.setAttribute('id', 'btnEdit');
+        //Delete button
+        let btnDelete = document.createElement('button');
+        btnDelete.innerHTML = 'Delete User';
+        btnDelete.setAttribute('id', 'btnDelete');
+
+        //Append to div-element
+        div.innerHTML += '<br>';
+        div.appendChild(btnEdit);
+        div.appendChild(btnDelete);
+        div.innerHTML += '<br><br>'; //spacing for next object
+
+        /*
+         ***Add event handlers to buttons***
+         */
+        //Edit
+        document.getElementById("btnEdit").addEventListener('click', function (event) {
+            event.preventDefault();
+
+            if (document.getElementById('updatePersonContainer') != null) {
+                document.getElementById('updatePersonContainer').outerHTML = ''; //reset
+            }
+            generatePerson(dataStore.getData(), 'edit');
+            let updateDiv = document.getElementById('updatePersonContainer');
+
+            //Confirm edit button
+            let btnConfirmEdit = document.createElement('button');
+            btnConfirmEdit.innerHTML = 'Confirm edit'
+            btnConfirmEdit.setAttribute('id', 'btnConfirmEdit');
+
+            //Deny delete button
+            let btnDenyEdit = document.createElement('button');
+            btnDenyEdit.innerHTML = 'Do not edit'
+            btnDenyEdit.setAttribute('id', 'btnDenyEdit');
+
+            //Append to div-element
+            updateDiv.innerHTML += '<br>';
+            updateDiv.appendChild(btnConfirmEdit);
+            updateDiv.appendChild(btnDenyEdit);
+            updateDiv.innerHTML += '<br><br>'; //spacing for next element
+            document.getElementById('btnConfirmEdit').addEventListener('click', function (event) {
+                event.preventDefault();
+                editPerson();
+            })
+
+            document.getElementById('btnDenyEdit').addEventListener('click', function (event) {
+                document.getElementById('viewPersonWithDataPTAG').innerHTML = ''; //reset but keep <div>-shell for functionality
+                document.getElementById('updatePersonContainer').outerHTML = '';
+            })
+            addCssToElementChildren("content", "button", ["btn", "btn-outline-dark"]);
+        });
+        //delete
+        document.getElementById("btnDelete").addEventListener('click', function (event) {
+            event.preventDefault();
+            if (document.getElementById('updatePersonContainer') != null) {
+                document.getElementById('updatePersonContainer').outerHTML = ''; //reset
+            }
+            generatePerson(dataStore.getData(), 'delete');
+            let updateDiv = document.getElementById('updatePersonContainer');
+
+            //Confirm delete button
+            let btnConfirmDelete = document.createElement('button');
+            btnConfirmDelete.innerHTML = 'Confirm Delete'
+            btnConfirmDelete.setAttribute('id', 'btnConfirmDelete');
+
+            //Deny delete button
+            let btnDenyDelete = document.createElement('button');
+            btnDenyDelete.innerHTML = 'Do not delete'
+            btnDenyDelete.setAttribute('id', 'btnDenyDelete');
+
+            //Append to div-element
+            updateDiv.appendChild(btnConfirmDelete);
+            updateDiv.appendChild(btnDenyDelete);
+            updateDiv.innerHTML += '<br><br>'; //spacing for next element
+
+            document.getElementById('btnConfirmDelete').addEventListener('click', function (event) {
+                event.preventDefault();
+                let id = dataStore.getData().id;
+                if (id !== null || id !== undefined) {
+                    deletePerson(id);
+                } else {
+                    console.log("Fetch didnt save data properly");
+                }
+            })
+
+            document.getElementById('btnDenyDelete').addEventListener('click', function (event) {
+                document.getElementById('viewPersonWithDataPTAG').innerHTML = ''; //reset but keep <div>-shell for functionality
+                document.getElementById('updatePersonContainer').outerHTML = '';
+            })
+        });
+        addCssToElementChildren("content", "button", ["btn", "btn-outline-dark"]);
+    }
+    addCssToElementChildren("content", "button", ["btn", "btn-outline-dark"]);
 }
 
 function writeToPTagPrPerson(jsondata) {
@@ -239,19 +355,245 @@ function writeToPTagPrPerson(jsondata) {
         "<br>Full name: " + jsondata['firstName'] + ' ' + jsondata['lastName']
         + "<br>e-mail: " + jsondata['email'];
     if (!isNullOrUndefined(jsondata['address'])) {
-        stringToWrite = stringToWrite + "<br>Address: " + jsondata['address']['street'] + ', '
-            + jsondata['address']['additionalInfo'] + ', ' + jsondata['address']['cityInfo']['zipCode']
-            + ' ' + jsondata['address']['cityInfo']['city'];
+        stringToWrite = stringToWrite + "<br>Address: " + jsondata['address']['street'] + ', ' +
+            jsondata['address']['additionalInfo'] + ', ' + jsondata['address']['cityInfo']['zipCode'] +
+            ' ' + jsondata['address']['cityInfo']['city'];
     }
-    stringToWrite = stringToWrite
-        + "<br>Hobbies: " + hobbies
-        + "<br>Phones: " + phones;
+    stringToWrite = stringToWrite +
+        "<br>Hobbies: " + hobbies +
+        "<br>Phones: " + phones;
     return stringToWrite;
 }
+
+/**
+ * Store and retrieve fetchData
+ */
+var dataStore = (function () {
+    var data; // Private Variable
+
+    var pub = {}; // public object - returned at end of module
+
+    pub.setData = function (newData) {
+        data = newData;
+    };
+
+    pub.getData = function () {
+        return data;
+    }
+
+    return pub; // expose externally
+}()); //https://stackoverflow.com/a/10452789
+
+function generatePerson(fetchData, type) {
+    let div = document.getElementById('viewPersonWithData');
+    //Create div to display Person in
+    let divContainer = document.createElement('div');
+    let newDiv = document.createElement('div');
+    newDiv.setAttribute('id', 'updatePersonContainer');
+    
+    div.appendChild(newDiv);
+
+    let outputField;
+    if (type === 'delete') {
+        outputField = 'p';
+    } else if (type === 'edit') {
+        outputField = 'textarea'; //could also be <input> but a) this is more suitable and b) this uses .innerhtml just like <p>
+    } else {
+        console.log("Incorrect type specified");
+    }
+
+    for (let key in fetchData) {
+        if (key.includes('id')) continue; //we do not allow users to see/edit IDs
+
+        if (typeof fetchData[key] === 'object') { //If we have a nested object
+            Object.keys(fetchData[key]).forEach(key2 => {
+                if (key2.includes('id')) return; //we do not allow users to see/edit IDs
+
+                if (typeof fetchData[key][key2] === 'object') { //If we have a nested, nested object
+
+                    Object.keys(fetchData[key][key2]).forEach(key3 => {
+                        if (key3.includes('id')) return; //we do not allow users to see/edit IDs
+                        //Create fields
+                        let field = document.createElement(`${outputField}`);
+                        field.setAttribute('id', `${key}` + `${key3}` + 'Input' + `${key2}`)
+                        field.innerHTML = fetchData[key][key2][key3];
+                        //Create labels for input fields
+                        let label = document.createElement('label');
+                        label.innerHTML = key + ' | ' + '<strong>' + key3 + ': </strong> ';
+                        label.setAttribute('for', field.id);
+                        //Add to DOM
+                        newDiv.appendChild(document.createElement('br'));
+                        newDiv.appendChild(label);
+                        newDiv.appendChild(document.createElement('br'));
+                        newDiv.appendChild(field);
+                    })
+                } else {
+                    //Create fields
+                    let field = document.createElement(`${outputField}`);
+                    field.setAttribute('id', `${key}` + `${key2}` + 'Input')
+                    field.innerHTML = fetchData[key][key2];
+                    //Create labels for input fields
+                    let label = document.createElement('label');
+                    label.innerHTML = key + ' | ' + '<strong>' + key2 + ': </strong> ';
+                    label.setAttribute('for', field.id);
+                    //Add to DOM
+                    newDiv.appendChild(document.createElement('br'));
+                    newDiv.appendChild(label);
+                    newDiv.appendChild(document.createElement('br'));
+                    newDiv.appendChild(field);
+                }
+            })
+        } else {
+            //Create fields
+            let field = document.createElement(`${outputField}`);
+            field.setAttribute('id', `${key}` + 'Input')
+            field.innerHTML = fetchData[key];
+            //Create labels for input fields
+            let label = document.createElement('label');
+            label.innerHTML = 'user | ' + '<strong>' + key + ': </strong>'; //hackish, but there is no key to grab onto
+            label.setAttribute('for', field.id);
+            //Add to DOM
+            newDiv.appendChild(document.createElement('br'));
+            newDiv.appendChild(label);
+            newDiv.appendChild(document.createElement('br'));
+            newDiv.appendChild(field);
+        }
+    }
+}
+/*----------------------------------------*/
+/*----------- BEGIN DELETE PERSON --------*/
+/*----------------------------------------*/
+function deletePerson(id) {
+    if (document.getElementById('deleteOutput')) document.getElementById('deleteOutput').outerHTML = ''; //reset
+    if (document.getElementById('errorOutput')) document.getElementById('errorOutput').outerHTML = ''; //reset
+    fetch(url + "person/delete/" + id, {
+            method: 'DELETE'
+        })
+        .then(res => handleHttpErrors(res))
+        .then(data => {
+            let div = document.getElementById('viewPersonWithData');
+            let deleteOutput = document.createElement('p')
+            deleteOutput.setAttribute('id', "deleteOutput");
+            deleteOutput.innerHTML = 'Deleted the following person succesfully! <br>' + writeToPTagPrPerson(data);
+            div.appendChild(deleteOutput);
+        })
+        .catch(err => {
+            if (err.status) {
+                err.fullError.then(e => {
+                    console.log(e);
+                })
+            } else {
+                console.log(err);
+            }
+            let errorOutput = document.createElement('p');
+            errorOutput.setAttribute('id', 'errorOutput');
+            errorOutput.innerHTML = '<br>ERROR:<br>' + JSON.stringify(err);
+            document.getElementById('viewPersonWithData').insertAdjacentElement('beforebegin', errorOutput);
+        });
+};
+/*----------------------------------------*/
+/*----------- END DELETE PERSON ----------*/
+/*----------------------------------------*/
+
+/*----------------------------------------*/
+/*----------- BEGIN EDIT PERSON --------*/
+/*----------------------------------------*/
+function editPerson() {
+    if (document.getElementById('editOutput')) document.getElementById('editOutput').outerHTML = ''; //reset
+    if (document.getElementById('errorOutput')) document.getElementById('errorOutput').outerHTML = ''; //reset
+
+    /* 
+    _____________________
+    Grab and setup data 
+    _____________________
+    */
+    let hobbies = [];
+    let hobbyNames = document.querySelectorAll('textarea[id^="hobbiesnameInput"]');
+    let hobbyDescriptions = document.querySelectorAll('textarea[id^="hobbiesdescriptionInput"]');
+    for (let index = 0; index < hobbyNames.length; index++) {
+        const nameData = hobbyNames[index];
+        const descriptionData = hobbyDescriptions[index]; //both arrays are the same size, always
+        hobbies.push({
+            name: nameData.value,
+            description: descriptionData.value
+        })
+    }
+
+    let phones = [];
+    let phoneNumbers = document.querySelectorAll('textarea[id^="phonesnumberInput"]');
+    let phoneDescriptions = document.querySelectorAll('textarea[id^="phonesdescriptionInput"]');
+    for (let index = 0; index < phoneNumbers.length; index++) {
+        const numberData = phoneNumbers[index];
+        const phoneDescriptionData = phoneDescriptions[index]; //both arrays are the same size, always
+        phones.push({
+            number: numberData.value,
+            description: phoneDescriptionData.value
+        })
+    }
+    let cityInfo = {
+        zipCode: document.getElementById('addresszipCodeInputcityInfo').value,
+        city: document.getElementById('addresscityInputcityInfo').value
+    }
+    let address = {
+        street: document.getElementById('addressstreetInput').value,
+        additionalInfo: document.getElementById('addressadditionalInfoInput').value,
+        cityInfo
+    };
+
+    let data = {
+        id: dataStore.getData().id,
+        firstName: document.getElementById('firstNameInput').value,
+        lastName: document.getElementById('lastNameInput').value,
+        email: document.getElementById('emailInput').value,
+        hobbies,
+        phones,
+        address
+    }
+
+    /* 
+    _____________________
+    End data setup
+    _____________________
+    */
+    fetch(url + "person", {
+            method: 'PUT',
+            body: JSON.stringify(data),
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(res => handleHttpErrors(res))
+        .then(data => {
+            let div = document.getElementById('viewPersonWithData');
+            let editOutput = document.createElement('p')
+            editOutput.setAttribute('id', "editOutput");
+            editOutput.innerHTML = 'Edited the following person succesfully! <br>' + writeToPTagPrPerson(data);
+            div.appendChild(editOutput);
+        })
+        .catch(err => {
+            if (err.status) {
+                err.fullError.then(e => {
+                    console.log(e);
+                })
+            } else {
+                console.log(err);
+            }
+            let errorOutput = document.createElement('p');
+            errorOutput.setAttribute('id', 'errorOutput');
+            errorOutput.innerHTML = '<br>ERROR:<br>' + JSON.stringify(err);
+            document.getElementById('viewPersonWithData').insertAdjacentElement('beforebegin', errorOutput);
+        });
+}
+/*----------------------------------------*/
+/*----------- END EDIT PERSON ----------*/
+/*----------------------------------------*/
 
 /*---------------------------------------------*/
 /*----------- End Get Person By Name ----------*/
 /*---------------------------------------------*/
+
+
 
 /*---- To clear the div of data ---*/
 function emptyTag(divID) {
@@ -268,18 +610,17 @@ function addPersonSimple() {
         .then(res => handleHttpErrors(res))
         .then(function (data) {
             console.log(data);
-            output.innerHTML = "<p>Person created:</p><br>"
-                + "<p>ID: " + data.id + "<br>"
-                + "<p>First name: " + data.firstName + "<br>"
-                + "<p>Last name: " + data.lastName + "<br>"
-                + "<p>email: " + data.email + "<br>";
+            output.innerHTML = "<p>Person created:</p><br>" +
+                "<p>ID: " + data.id + "<br>" +
+                "<p>First name: " + data.firstName + "<br>" +
+                "<p>Last name: " + data.lastName + "<br>" +
+                "<p>email: " + data.email + "<br>";
         })
         .catch(err => {
             if (err.status) {
-                err.fullError.then(e => output.innerHTML = "Error:<br><br>Status: "
-                + e.code + "<br>" + e.message)
-            }
-            else {
+                err.fullError.then(e => output.innerHTML = "Error:<br><br>Status: " +
+                    e.code + "<br>" + e.message)
+            } else {
                 console.log("Network error");
             }
         });
@@ -334,6 +675,7 @@ function actZipCode() {
 }
 
 var lastExisted = false;
+
 function checkIfInputExists(isCity) {
     //Data from DOM
     var inputHobbyName = document.getElementById("inputHobbyNameCreateAll");
@@ -377,44 +719,48 @@ function checkIfInputExists(isCity) {
 }
 
 function fetchCheckData(isCity, target, status, uriPart, checkValue) {
-    fetch(url + uriPart + checkValue.value, { signal })
-    .then(res => { return res.json(); })
-    .then(function (data) {
-        console.log(data);
-        if (data.city || data.description) {
-            let output;
-            if (isCity) {
-                output = data.city;
+    fetch(url + uriPart + checkValue.value, {
+            signal
+        })
+        .then(res => {
+            return res.json();
+        })
+        .then(function (data) {
+            console.log(data);
+            if (data.city || data.description) {
+                let output;
+                if (isCity) {
+                    output = data.city;
+                } else {
+                    output = data.description;
+                }
+                if (data.name != null || data.city) {
+                    target.innerText = "";
+                    target.value = "";
+                    status.innerHTML = "-- Existing ✓ --";
+                    target.innerText = output;
+                    target.value = output;
+                    lastExisted = true;
+                    if (!target.hasAttribute("disabled")) {
+                        target.setAttribute("disabled", "true");
+                    }
+                }
             } else {
-                output = data.description;
-            }
-            if (data.name != null || data.city) {
-                target.innerText = "";
-                target.value = "";
-                status.innerHTML = "-- Existing ✓ --";
-                target.innerText = output;
-                target.value = output;
-                lastExisted = true;
-                if (!target.hasAttribute("disabled")) {
-                    target.setAttribute("disabled", "true");
+                //If we end up here it means that no hobby/city with the given name/zipcode was found
+                if (target.hasAttribute("disabled")) {
+                    target.removeAttribute("disabled");
+                }
+                if (lastExisted) {
+                    target.innerText = "";
+                    target.value = "";
+                    status.innerHTML = "-- New --";
+                    lastExisted = false;
                 }
             }
-        } else {
-            //If we end up here it means that no hobby/city with the given name/zipcode was found
-            if (target.hasAttribute("disabled")) {
-                target.removeAttribute("disabled");
-            }
-            if (lastExisted) {
-                target.innerText = "";
-                target.value = "";
-                status.innerHTML = "-- New --";
-                lastExisted = false;
-            }
-        }
-    })
-    .catch(err => {
-        console.log("Request was canceled");
-    });
+        })
+        .catch(err => {
+            console.log("Request was canceled");
+        });
 }
 
 function createAll() {
@@ -422,33 +768,32 @@ function createAll() {
     var outputCreateAll = document.getElementById("outputCreateAll");
 
     fetch(url + "create-all", createAllOptions("POST"))
-    .then(res => handleHttpErrors(res))
-    .then(function (data) {
-        console.log(data);
-        outputCreateAll.innerHTML =
-            "ID: " + data.id + "<br>" +
-            "First name: " + data.firstName + "<br>" + "Last name: " + data.lastName + "<br>" +
-            "Email: " + data.email + "<br>" + "Address<br>Street: " + data.address.street + "<br>" +
-            "Additional inforamtion: " + data.address.additionalInfo + "<br>" + "City" + "<br>" +
-            "Name: " + data.address.cityInfo.city + "<br>" + "Zipcode: " + data.address.cityInfo.zipCode +
-            "<br>" + "Hobby" + "<br>" + "Name: " + data.hobbies[0].name + "<br>" + "Description: " +
-            data.hobbies[0].description;
-    })
-    .catch(err => {
-        if (err.status) {
-            err.fullError.then(e => outputCreateAll.innerHTML = "Error:<br><br>Status: "
-            + e.code + "<br>" + e.message)
-        }
-        else {
-            console.log("Network error");
-        }
-    });
+        .then(res => handleHttpErrors(res))
+        .then(function (data) {
+            console.log(data);
+            outputCreateAll.innerHTML =
+                "ID: " + data.id + "<br>" +
+                "First name: " + data.firstName + "<br>" + "Last name: " + data.lastName + "<br>" +
+                "Email: " + data.email + "<br>" + "Address<br>Street: " + data.address.street + "<br>" +
+                "Additional inforamtion: " + data.address.additionalInfo + "<br>" + "City" + "<br>" +
+                "Name: " + data.address.cityInfo.city + "<br>" + "Zipcode: " + data.address.cityInfo.zipCode +
+                "<br>" + "Hobby" + "<br>" + "Name: " + data.hobbies[0].name + "<br>" + "Description: " +
+                data.hobbies[0].description;
+        })
+        .catch(err => {
+            if (err.status) {
+                err.fullError.then(e => outputCreateAll.innerHTML = "Error:<br><br>Status: " +
+                    e.code + "<br>" + e.message)
+            } else {
+                console.log("Network error");
+            }
+        });
 }
 
 //This function could be converted to a UTIL function and moved to the UTIL category 
 function createAllOptions(METHOD) {
     //Data from DOM
-    
+
     var inputFirstName = document.getElementById("inputFirstNameCreateAll");
     var inputLastName = document.getElementById("inputLastNameCreateAll");
     var inputEmail = document.getElementById("inputEmailCreateAll");
@@ -475,8 +820,7 @@ function createAllOptions(METHOD) {
         number: inputPhone.value,
         description: inputPhoneDescription.value
     }
-    if (!phone.number)
-    {
+    if (!phone.number) {
         phone.number = -1;
     }
 
@@ -561,8 +905,9 @@ function allUsersToPtag() {
         .catch(err => {
             if (err.status) {
                 err.fullError.then(e => console.log(e.detail))
+            } else {
+                console.log("Network error: " + err);
             }
-            else { console.log("Network error: " + err); }
         });
 }
 
@@ -582,8 +927,9 @@ function allUsersToTableTag() {
         .catch(err => {
             if (err.status) {
                 err.fullError.then(e => console.log(e.detail))
+            } else {
+                console.log("Network error: " + err);
             }
-            else { console.log("Network error: " + err); }
         });
 }
 
@@ -615,24 +961,20 @@ function tableData(table, bodyData) {
             if (typeof element[key] === 'object') {
                 if (key === 'address') {
                     cellValue = obj.address.street + ', ' + obj.address.cityInfo.zipCode + ' ' + obj.address.cityInfo.city;
-                }
-                else if (key === 'hobbies') {
+                } else if (key === 'hobbies') {
                     obj.hobbies.forEach(hobby => {
                         cellValue = cellValue + hobby.name + ', ';
                     });
                     cellValue = cellValue.slice(0, -2);
-                }
-                else if (key === 'phones') {
+                } else if (key === 'phones') {
                     obj.phones.forEach(phone => {
                         cellValue = cellValue + phone.description + ': ' + phone.number + ', ';
                     });
                     cellValue = cellValue.slice(0, -2);
                 }
-            }
-            else if (element[key]) {
+            } else if (element[key]) {
                 cellValue = element[key];
-            }
-            else {
+            } else {
                 cellValue = cellValue;
             }
             let text = document.createTextNode(cellValue);
@@ -730,9 +1072,10 @@ function allHobbies() {
         })
         .catch(err => {
             if (err.status) {
-                err.fullError.then(e => console.log(e.detail))
+                err.fullError.then(e => console.log(e))
+            } else {
+                console.log("Network error: " + err);
             }
-            else { console.log("Network error: " + err); }
         });
 }
 
@@ -800,12 +1143,10 @@ function dropDownData(allhobbies) {
 function spawnAndUpdateEditHobbyMenu() {
     var output = document.getElementById("editHobby");
     var outputInner = document.getElementById("editHobbyInnerDiv");
-    if (output.getAttribute("hidden"))
-    {
+    if (output.getAttribute("hidden")) {
         output.removeAttribute("hidden");
     }
-    if (outputInner.getAttribute("hidden"))
-    {
+    if (outputInner.getAttribute("hidden")) {
         outputInner.removeAttribute("hidden");
     }
     var name = document.getElementById("hobbyTitleEditMenu");
@@ -836,10 +1177,9 @@ function confirmEditHobby() {
         .catch(err => {
             if (err.status) {
                 innerEditMenu.setAttribute("hidden", "hidden");
-                err.fullError.then(e => outputMessageDiv.innerHTML = "Error:<br><br>Status: "
-                + e.code + "<br>" + e.message);
-            }
-            else {
+                err.fullError.then(e => outputMessageDiv.innerHTML = "Error:<br><br>Status: " +
+                    e.code + "<br>" + e.message);
+            } else {
                 console.log("Network error");
             }
         });
@@ -854,8 +1194,7 @@ function createHobbyOptions() {
         id: latestHobbyID
     }
 
-    if (data.description == "")
-    {
+    if (data.description == "") {
         data.description = "No description";
     }
 
@@ -877,8 +1216,7 @@ function getHobbyByName() {
     let hobbyname = selected.options[selected.selectedIndex].value;
     if (selected.options[selected.selectedIndex].id === 'default') {
         document.getElementById('allHobbiesPTAG').innerHTML = 'Select a hobby name'
-    }
-    else {
+    } else {
         let urlHobby = url + 'hobby/' + hobbyname;
         fetch(urlHobby)
             .then(handleHttpErrors)
@@ -894,16 +1232,17 @@ function getHobbyByName() {
             .catch(err => {
                 if (err.status) {
                     err.fullError.then(e => console.log(e.detail))
+                } else {
+                    console.log("Network error");
                 }
-                else { console.log("Network error"); }
             });
     }
 }
 
 function writeToPTagPrHobby(jsondata) {
     let stringToWrite =
-        "<br>Hobby: " + jsondata['name']
-        + "<br>Description: " + jsondata['description'];
+        "<br>Hobby: " + jsondata['name'] +
+        "<br>Description: " + jsondata['description'];
     return stringToWrite;
 }
 
@@ -914,8 +1253,7 @@ function getAllPersonsWithHobbyByName() {
     let hobbyname = selected.options[selected.selectedIndex].value;
     if (selected.options[selected.selectedIndex].id === 'default') {
         document.getElementById('allHobbiesPTAG').innerHTML = 'Select a hobby name'
-    }
-    else {
+    } else {
         let urlHobby = url + '/hobby?hobby=' + hobbyname;
         fetch(urlHobby)
             .then(handleHttpErrors)
@@ -930,8 +1268,9 @@ function getAllPersonsWithHobbyByName() {
             .catch(err => {
                 if (err.status) {
                     err.fullError.then(e => console.log(e.detail))
+                } else {
+                    console.log("Network error");
                 }
-                else { console.log("Network error"); }
             });
     }
 }
@@ -974,8 +1313,9 @@ function allZipcodes() {
         .catch(err => {
             if (err.status) {
                 err.fullError.then(e => console.log(e.detail))
+            } else {
+                console.log("Network error: " + err);
             }
-            else { console.log("Network error: " + err); }
         });
 }
 
@@ -1021,8 +1361,7 @@ function getCityByZipcode() {
     let zipcode = selected.options[selected.selectedIndex].value;
     if (selected.options[selected.selectedIndex].id === 'default') {
         document.getElementById('viewZipCodeDataPTAG').innerHTML = 'Select a zipcode'
-    }
-    else {
+    } else {
         let urlZip = url + 'city/zip/' + zipcode;
         fetch(urlZip)
             .then(handleHttpErrors)
@@ -1032,16 +1371,17 @@ function getCityByZipcode() {
             .catch(err => {
                 if (err.status) {
                     err.fullError.then(e => console.log(e.detail))
+                } else {
+                    console.log("Network error");
                 }
-                else { console.log("Network error"); }
             });
     }
 }
 
 function writeToPTagZip(jsondata) {
     let stringToWrite =
-        "<br>Zip Code: " + jsondata['zipCode']
-        + "<br>City: " + jsondata['city'];
+        "<br>Zip Code: " + jsondata['zipCode'] +
+        "<br>City: " + jsondata['city'];
     return stringToWrite;
 }
 
@@ -1052,8 +1392,7 @@ function allPersonsInCity() {
     let zipcode = selected.options[selected.selectedIndex].value;
     if (selected.options[selected.selectedIndex].id === 'default') {
         document.getElementById('viewZipCodeDataPTAG').innerHTML = 'Select a zipcode'
-    }
-    else {
+    } else {
         let urlZip = url + 'city/zip/' + zipcode;
         fetch(urlZip)
             .then(handleHttpErrors)
@@ -1063,8 +1402,9 @@ function allPersonsInCity() {
             .catch(err => {
                 if (err.status) {
                     err.fullError.then(e => console.log(e.detail))
+                } else {
+                    console.log("Network error");
                 }
-                else { console.log("Network error"); }
             });
     }
 }
@@ -1087,8 +1427,9 @@ function allPersonsInCityInner(fetchedData) {
         .catch(err => {
             if (err.status) {
                 err.fullError.then(e => console.log(e.detail))
+            } else {
+                console.log("Network error");
             }
-            else { console.log("Network error"); }
         });
 }
 
